@@ -7,6 +7,8 @@ import { updateReview } from '../db/reviews'
 import { SleeveArtwork } from '../components/SleeveArtwork'
 import { EmptyState } from '../components/EmptyState'
 import { cx, formatRating } from '../lib/utils'
+import { pickQuip } from '../lib/quips'
+import { Quip } from '../components/Quip'
 import type { Review, ReviewDraft } from '../types'
 
 function draftOf(r: Review): ReviewDraft {
@@ -28,6 +30,7 @@ function chipClass(selected: boolean): string {
 
 export function TaggingPage() {
   const reviews = useLiveQuery(() => db.reviews.toArray(), [])
+  const plays = useLiveQuery(() => db.plays.toArray(), [])
 
   // frozen queue order: untagged first, then most recently edited — re-sorting
   // mid-flow while chips get toggled would yank albums out from under the thumb
@@ -132,6 +135,11 @@ export function TaggingPage() {
           Deine Genres, deine Taxonomie — nichts wird automatisch befüllt. Alles, was du hier setzt, fließt direkt in
           The DNA.
         </p>
+        {reviews && plays && pickQuip('tagging', { reviews, plays, current, untagged: untaggedTotal }) && (
+          <div className="mt-3">
+            <Quip text={pickQuip('tagging', { reviews, plays, current, untagged: untaggedTotal })!} />
+          </div>
+        )}
       </header>
 
       {done || (queueIds !== null && queue.length === 0) ? (
@@ -182,7 +190,7 @@ export function TaggingPage() {
               </div>
               <div className="min-w-0">
                 <p className="kicker">{current.artist}</p>
-                <h2 className="mt-1 truncate font-block text-xl uppercase leading-tight text-cream-100" style={{ textShadow: '2px 2px 0 rgba(201,48,24,0.6)' }}>{current.albumTitle}</h2>
+                <h2 className="mt-1 font-block text-lg uppercase leading-tight text-cream-100" style={{ textShadow: '2px 2px 0 rgba(201,48,24,0.6)' }}>{current.albumTitle}</h2>
                 <p className="mt-1 text-sm text-cream-500">
                   {current.releaseYear ?? 'Jahr unbekannt'}
                   {current.rating != null && <> · {formatRating(current.rating)}</>}

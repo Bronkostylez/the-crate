@@ -6,6 +6,8 @@ import { db } from '../db/local'
 import { computeMilestones, splitMilestones, type Milestone } from '../lib/milestones'
 import { EmptyState } from '../components/EmptyState'
 import { formatDate } from '../lib/utils'
+import { pickQuip } from '../lib/quips'
+import { Quip } from '../components/Quip'
 
 const LAST_SEEN_KEY = 'the-crate:milestones-last-seen'
 
@@ -80,6 +82,11 @@ export function MilestonesPage() {
           Gerechnet nur aus deinen echten Plays und Reviews. Jeder geknackte Meilenstein zeigt die Zahl und den Tag,
           an dem er gefallen ist — der 100. Play von Illmatic landet auch hier.
         </p>
+        {pickQuip('milestones', { reviews, plays }) && (
+          <div className="mt-3">
+            <Quip text={pickQuip('milestones', { reviews, plays })!} />
+          </div>
+        )}
       </header>
 
       <section className="space-y-3">

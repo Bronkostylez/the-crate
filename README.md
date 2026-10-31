@@ -63,8 +63,14 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   "Als Nächstes im Visier" mit Fortschrittsbalken — der 100. Play von
   Illmatic inklusive. Gerechnet aus Album-, Artist-, Track- und
   Gesamt-Plays, Review- und 10er-Zahlen und Hörzeit (ca.-Schätzungen sind
-  markiert). Neue Meilensteine seit deinem letzten Besuch tragen ein
-  NEU-Tape.
+  markiert). Neue Meilensteine seit deinem letzten Besuch tragen einen
+  gelben NEU-Sternburst.
+- **Sprüche am Rand** — eine handschriftliche Randnotiz auf Übersicht,
+  Genre-Runde und Meilensteinen, die aus deinen echten Zahlen gerechnet
+  wird (Top-Artist, Ø-Bewertung, perfekte 10en, Genres, Hörzeit,
+  Meilensteine) und alle drei Stunden deterministisch wechselt — ganz
+  ohne Server, das Zeitfenster wählt den Spruch. Frech, aber lieb: die
+  Witze gehen auf deine Kappe, nie auf die Musik.
 - **The DNA** — deine musikalische Identität, gerechnet nur aus deinen
   echten Daten: Genre-Profil (aus deinen Reviews, mit Ø-Bewertung), Hörzeit
   pro Genre, Äras-Chart, Szenen aus deinen eigenen Genre-Tags (inkl.

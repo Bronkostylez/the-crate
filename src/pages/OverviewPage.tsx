@@ -9,6 +9,8 @@ import { SleeveArtwork } from '../components/SleeveArtwork'
 import { EmptyState } from '../components/EmptyState'
 import { SparkleDoodle } from '../components/Doodles'
 import { formatDate } from '../lib/utils'
+import { pickQuip } from '../lib/quips'
+import { Quip } from '../components/Quip'
 
 const tooltipStyle = {
   backgroundColor: '#181924',
@@ -20,8 +22,9 @@ const tooltipStyle = {
 
 export function OverviewPage() {
   const reviews = useLiveQuery(() => db.reviews.toArray(), [])
+  const plays = useLiveQuery(() => db.plays.toArray(), [])
 
-  if (!reviews) return null
+  if (!reviews || !plays) return null
 
   if (reviews.length === 0) {
     return (
@@ -66,6 +69,8 @@ export function OverviewPage() {
         <h1 className="page-title">Dein Hip-Hop-Universum, <span className="marker-underline">in Zahlen.</span></h1>
         <SparkleDoodle className="absolute -top-1 right-0 h-6 w-6 opacity-70 md:right-16" />
       </header>
+
+      {pickQuip('overview', { reviews, plays }) && <Quip text={pickQuip('overview', { reviews, plays })!} />}
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4 animate-stagger">
         <StatCard label="Rezensierte Alben" value={reviews.length} tilt={-1} />
