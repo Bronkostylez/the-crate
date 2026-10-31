@@ -65,9 +65,12 @@ export function DnaPage() {
       </header>
 
       {dna.genres.length === 0 && dna.coverage.plays > 0 && (
-        <p className="crate-card px-4 py-3 text-sm text-cream-500">
-          Noch keine Genre-Tags im Archiv — Genre-, Ära- und Szenen-Profile entstehen, sobald deine Reviews Genres tragen. Der Hörverlauf fließt schon in die Entwicklungs-Charts ein.
-        </p>
+        <div className="crate-card flex flex-wrap items-center gap-3 px-4 py-3 text-sm text-cream-500">
+          <p className="min-w-52 flex-1">
+            Noch keine Genre-Tags im Archiv — Genre-, Ära- und Szenen-Profile entstehen, sobald deine Reviews Genres tragen. Der Hörverlauf fließt schon in die Entwicklungs-Charts ein.
+          </p>
+          <Link to="/tags" className="crate-btn-primary">Zur Genre-Runde <ArrowRight className="h-4 w-4" /></Link>
+        </div>
       )}
 
       {dna.genres.length > 0 && (

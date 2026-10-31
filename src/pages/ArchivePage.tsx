@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { LayoutGrid, Library, List, Plus, Search } from 'lucide-react'
+import { ArrowRight, LayoutGrid, Library, List, Plus, Search } from 'lucide-react'
 import { db } from '../db/local'
 import { RatingBadge } from '../components/RatingBadge'
 import { SleeveArtwork } from '../components/SleeveArtwork'
@@ -28,6 +28,7 @@ export function ArchivePage() {
   const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('updated')
   const [genre, setGenre] = useState('')
+  const untaggedCount = useMemo(() => (reviews ?? []).filter((r) => r.genres.length === 0).length, [reviews])
   const [minRating, setMinRating] = useState('')
 
   const allGenres = useMemo(
@@ -80,6 +81,14 @@ export function ArchivePage() {
         />
       ) : (
         <>
+          {untaggedCount > 0 && (
+            <div className="crate-card flex flex-wrap items-center gap-3 px-4 py-3 text-sm text-cream-500">
+              <p className="min-w-52 flex-1">
+                {untaggedCount} von {reviews.length} {reviews.length === 1 ? 'Album' : 'Alben'} ohne Genre — die Genre-Runde füttert The DNA.
+              </p>
+              <Link to="/tags" className="crate-btn-primary">Zur Genre-Runde <ArrowRight className="h-4 w-4" /></Link>
+            </div>
+          )}
           {/* toolbar */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative min-w-52 flex-1">

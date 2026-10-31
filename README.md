@@ -50,6 +50,11 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   ist ein Schnappschuss: neuere Importe zeigen, was dazukam oder verschwand.
   Schnappschüsse lassen sich umbenennen, exportieren (JSON/CSV) und löschen.
   Playlist-Platzierung wird strikt vom Hörverlauf getrennt.
+- **Genre-Runde** — das schnelle Taggen fürs Regal: Album für Album, große
+  Chips zum Antippen, eigene Genres mit einem Tipp angelegt. Deine Taxonomie
+  gehört dir — nichts wird automatisch befüllt. Optional übernimmst du die
+  Genres eines Albums für alle Alben desselben Artists (vorhandene bleiben
+  erhalten). Alles, was du setzt, fließt direkt in The DNA.
 - **The DNA** — deine musikalische Identität, gerechnet nur aus deinen
   echten Daten: Genre-Profil (aus deinen Reviews, mit Ø-Bewertung), Hörzeit
   pro Genre, Äras-Chart, Szenen aus deinen eigenen Genre-Tags (inkl.

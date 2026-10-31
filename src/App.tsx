@@ -15,6 +15,7 @@ const HistoryPage = lazy(() => import('./pages/HistoryPage').then((m) => ({ defa
 const PlaylistPage = lazy(() => import('./pages/PlaylistPage').then((m) => ({ default: m.PlaylistPage })))
 const DnaPage = lazy(() => import('./pages/DnaPage').then((m) => ({ default: m.DnaPage })))
 const RecapPage = lazy(() => import('./pages/RecapPage').then((m) => ({ default: m.RecapPage })))
+const TaggingPage = lazy(() => import('./pages/TaggingPage').then((m) => ({ default: m.TaggingPage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="archive" element={<ArchivePage />} />
           <Route path="archive/new" element={<ReviewEditorPage />} />
           <Route path="archive/:id" element={<ReviewEditorPage />} />
+          <Route path="tags" element={<TaggingPage />} />
           <Route path="history" element={<HistoryPage />} />
           <Route path="playlist" element={<PlaylistPage />} />
           <Route path="dna" element={<DnaPage />} />
