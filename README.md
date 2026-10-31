@@ -8,7 +8,7 @@ erfunden, um ein Chart zu füllen.
 
 Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 
-## Was heute geht (Etappe 1)
+## Was heute geht (Etappen 1–2)
 
 - **Das Archiv** — Album-Reviews mit Artwork, Bewertung (1–10), Review-Text,
   besten/schwächsten Tracks, Genres, Tags, Notizen. Raster- und Listenansicht,
@@ -25,6 +25,14 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   Überspringen-oder-Überschreiben. Bestehende Reviews werden wortgleich
   importiert.
 - **Export / Backup** — das ganze Archiv als JSON oder CSV, ein Klick.
+- **Hörverlauf** — Import von Spotifys Extended Streaming History (die
+  JSON-Dateien aus dem Datenexport, mehrere auf einmal). Podcasts und Videos
+  werden übersprungen, Duplikate werden erkannt — auch beim erneuten Import
+  derselben Datei. Daraus gerechnet: Hörzeit, Plays, Artists, Tracks,
+  Minuten pro Tag im Chart, Top-Artists und Top-Tracks nach Hörzeit,
+  Suchfeld und chronologische Liste. Zeitraum wählbar: 7 Tage, 30 Tage,
+  12 Monate, Gesamt. Jede Zahl kommt aus einer echten Zeile deines Exports.
+
 - **Überblick** — Archiv-Statistiken und Bewertungs-Verteilung, nur aus
   echten Reviews gerechnet. Ehrliche leere Zustände, wo noch keine Daten
   existieren.
@@ -33,8 +41,7 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 - Läuft komplett offline — das Archiv liegt in IndexedDB, bis der
   Supabase-Sync in einer späteren Etappe kommt.
 
-Als Nächstes: Hörverlauf-Import (Spotify Extended Streaming History),
-Playlist-Analyse, die musikalische Identität („The DNA"), monatliche und
+Als Nächstes: Playlist-Analyse, die musikalische Identität („The DNA"), monatliche und
 jährliche Recaps, PWA + Cloud-Sync.
 
 ## Lokal laufen lassen

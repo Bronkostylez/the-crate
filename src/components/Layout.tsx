@@ -1,10 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Library, Upload, Settings, Disc3 } from 'lucide-react'
+import { LayoutDashboard, Library, History, Upload, Settings, Disc3 } from 'lucide-react'
 import { cx } from '../lib/utils'
 
 const NAV = [
   { to: '/', label: 'Überblick', icon: LayoutDashboard, end: true },
   { to: '/archive', label: 'Das Archiv', icon: Library },
+  { to: '/history', label: 'Hörverlauf', icon: History },
   { to: '/import', label: 'Import', icon: Upload },
   { to: '/settings', label: 'Einstellungen', icon: Settings },
 ]

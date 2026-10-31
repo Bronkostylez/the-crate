@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { Review } from '../types'
+import type { Play, Review } from '../types'
 
 /**
  * Local-first storage (IndexedDB via Dexie).
@@ -10,11 +10,17 @@ import type { Review } from '../types'
  */
 export class CrateDB extends Dexie {
   reviews!: Table<Review, string>
+  plays!: Table<Play, string>
 
   constructor() {
     super('the-crate')
     this.version(1).stores({
       reviews: 'id, artist, rating, releaseYear, reviewDate, updatedAt, *genres, *tags',
+    })
+    // v2 adds the listening history; the compound index is the dedupe key
+    this.version(2).stores({
+      reviews: 'id, artist, rating, releaseYear, reviewDate, updatedAt, *genres, *tags',
+      plays: 'id, playedAt, artistName, trackName, [playedAt+trackName+artistName]',
     })
   }
 }

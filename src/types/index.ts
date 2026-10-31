@@ -59,3 +59,37 @@ export interface ValidatedImportRow {
 }
 
 export type DuplicateStrategy = 'skip' | 'update'
+
+/** One recorded play from the listening history. */
+export interface Play {
+  id: string
+  trackName: string
+  artistName: string
+  albumName: string | null
+  /** ISO timestamp of when the track ended (Spotify export semantics) */
+  playedAt: string
+  msPlayed: number
+  source: 'spotify_extended' | 'spotify_simple' | 'manual'
+  /** which import batch added this row */
+  importId: string
+}
+
+export interface PlayImportPreview {
+  fileNames: string[]
+  rowsRead: number
+  validPlays: ParsedPlay[]
+  skippedNonMusic: number
+  skippedInvalid: number
+  duplicates: number
+  firstPlay: string | null
+  lastPlay: string | null
+  topArtists: Array<{ artist: string; plays: number }>
+}
+
+export interface ParsedPlay {
+  trackName: string
+  artistName: string
+  albumName: string | null
+  playedAt: string
+  msPlayed: number
+}

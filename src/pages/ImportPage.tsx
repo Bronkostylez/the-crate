@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { CheckCircle2, Download, FileUp, TriangleAlert, Upload } from 'lucide-react'
+import { CheckCircle2, Download, FileUp, History, TriangleAlert, Upload } from 'lucide-react'
 import { db } from '../db/local'
+import { buildPlayPreview, formatDuration, importPlays } from '../db/plays'
+import { formatDate } from '../lib/utils'
+import type { PlayImportPreview } from '../types'
 import { parseCsv, reviewsToCsv, reviewsToJson, runImport, validateImport, type ImportResult } from '../db/reviews'
 import { TEMPLATE_CSV, TEMPLATE_JSON } from '../db/template'
 import { EmptyState } from '../components/EmptyState'
@@ -140,6 +143,8 @@ export function ImportPage() {
         />
       )}
 
+      <StreamingImport />
+
       {phase.step === 'done' && (
         <section className="crate-card space-y-3 p-5">
           <p className="kicker rule">Import abgeschlossen</p>
@@ -269,4 +274,111 @@ function translateIssue(message: string): string {
   const date = message.match(/^unreadable date "(.*)"$/)
   if (date) return `Datum nicht lesbar: "${date[1]}"`
   return message
+}
+
+
+// ── Spotify Extended Streaming History ──────────────────────────────────
+
+function StreamingImport() {
+  const plays = useLiveQuery(() => db.plays.count(), [])
+  const [preview, setPreview] = useState<PlayImportPreview | null>(null)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [doneCount, setDoneCount] = useState<number | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  async function handleFiles(files: FileList) {
+    setError('')
+    setDoneCount(null)
+    setBusy(true)
+    try {
+      const read = await Promise.all([...files].map(async (f) => ({ name: f.name, text: await f.text() })))
+      setPreview(await buildPlayPreview(read))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Datei konnte nicht gelesen werden.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function confirm() {
+    if (!preview) return
+    setBusy(true)
+    const n = await importPlays(preview.validPlays, 'spotify_extended')
+    setBusy(false)
+    setPreview(null)
+    setDoneCount(n)
+  }
+
+  return (
+    <section className="crate-card space-y-3 p-5">
+      <p className="kicker rule">Hörverlauf — Spotify Extended Streaming History</p>
+      <p className="text-sm text-cream-500">
+        {plays !== undefined && plays > 0
+          ? `Aktuell ${plays.toLocaleString('de-DE')} Plays im Verlauf. Neue Dateien importieren ergänzt nur, was fehlt — doppelte Plays werden erkannt.`
+          : 'Die JSON-Dateien aus Spotifys Datenexport („Streaming_History_Audio_…"), gern mehrere auf einmal. Podcasts und Videos werden übersprungen, Duplikate erkannt — auch beim erneuten Import derselben Datei.'}
+      </p>
+
+      <button
+        className="flex w-full flex-col items-center gap-2 rounded-sm border border-dashed border-ink-600 px-6 py-10 text-center transition-colors hover:border-rust-500"
+        onClick={() => fileInput.current?.click()}
+        disabled={busy}
+      >
+        <History className="h-6 w-6 text-cream-600" strokeWidth={1.5} />
+        <span className="text-sm text-cream-300">{busy ? 'Dateien werden gelesen…' : 'Streaming-History-Dateien wählen (.json, Mehrfachauswahl möglich)'}</span>
+      </button>
+      <input
+        ref={fileInput}
+        type="file"
+        accept=".json,application/json"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.length) void handleFiles(e.target.files)
+          e.target.value = ''
+        }}
+      />
+      {error && (
+        <p className="flex items-center gap-2 text-sm text-rust-300">
+          <TriangleAlert className="h-4 w-4" /> {error}
+        </p>
+      )}
+
+      {preview && (
+        <div className="space-y-3 rounded-sm border border-ink-600 bg-ink-900 p-4">
+          <p className="kicker">Vorschau — {preview.fileNames.join(', ')}</p>
+          <div className="flex flex-wrap gap-2 font-mono text-xs">
+            <span className="crate-chip">{preview.rowsRead.toLocaleString('de-DE')} Einträge gelesen</span>
+            <span className="crate-chip">{preview.validPlays.length.toLocaleString('de-DE')} neue Plays</span>
+            {preview.duplicates > 0 && <span className="crate-chip">{preview.duplicates.toLocaleString('de-DE')} Duplikate</span>}
+            {preview.skippedNonMusic > 0 && <span className="crate-chip">{preview.skippedNonMusic.toLocaleString('de-DE')} Podcasts/Videos</span>}
+            {preview.skippedInvalid > 0 && <span className="crate-chip border-rust-600 text-rust-300">{preview.skippedInvalid} ungültig</span>}
+          </div>
+          {preview.firstPlay && preview.lastPlay && (
+            <p className="text-sm text-cream-300">
+              Zeitraum: {formatDate(preview.firstPlay)} bis {formatDate(preview.lastPlay)} · {formatDuration(preview.validPlays.reduce((s, p) => s + p.msPlayed, 0))} Hörzeit
+            </p>
+          )}
+          {preview.topArtists.length > 0 && (
+            <p className="text-xs text-cream-500">
+              Meistgehört darin: {preview.topArtists.map((a) => `${a.artist} (${a.plays}×)`).join(', ')}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <button className="crate-btn-primary" disabled={preview.validPlays.length === 0 || busy} onClick={() => void confirm()}>
+              {busy ? 'Importiert…' : `${preview.validPlays.length.toLocaleString('de-DE')} Plays importieren`}
+            </button>
+            <button className="crate-btn" onClick={() => setPreview(null)}>Verwerfen</button>
+          </div>
+        </div>
+      )}
+
+      {doneCount !== null && (
+        <p className="flex items-center gap-2 text-sm text-cream-300">
+          <CheckCircle2 className="h-4 w-4 text-rust-400" /> {doneCount.toLocaleString('de-DE')} Plays importiert.{' '}
+          <Link to="/history" className="text-rust-300 underline underline-offset-2">Zum Hörverlauf</Link>
+        </p>
+      )}
+    </section>
+  )
 }
