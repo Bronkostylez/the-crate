@@ -1,12 +1,14 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { CheckCircle2, Download, FileUp, History, TriangleAlert, Upload } from 'lucide-react'
+import { CheckCircle2, Download, FileUp, History, ListMusic, TriangleAlert, Upload } from 'lucide-react'
 import { db } from '../db/local'
 import { buildPlayPreview, formatDuration, importPlays } from '../db/plays'
 import { formatDate } from '../lib/utils'
 import type { PlayImportPreview } from '../types'
 import { parseCsv, reviewsToCsv, reviewsToJson, runImport, validateImport, type ImportResult } from '../db/reviews'
+import { buildPlaylistPreview, importPlaylistSnapshot, parsePlaylistFile } from '../db/playlists'
+import type { PlaylistCandidate, PlaylistImportPreview } from '../types'
 import { TEMPLATE_CSV, TEMPLATE_JSON } from '../db/template'
 import { EmptyState } from '../components/EmptyState'
 import { RatingBadge } from '../components/RatingBadge'
@@ -144,6 +146,8 @@ export function ImportPage() {
       )}
 
       <StreamingImport />
+
+      <PlaylistImport />
 
       {phase.step === 'done' && (
         <section className="crate-card space-y-3 p-5">
@@ -377,6 +381,142 @@ function StreamingImport() {
         <p className="flex items-center gap-2 text-sm text-cream-300">
           <CheckCircle2 className="h-4 w-4 text-rust-400" /> {doneCount.toLocaleString('de-DE')} Plays importiert.{' '}
           <Link to="/history" className="text-rust-300 underline underline-offset-2">Zum Hörverlauf</Link>
+        </p>
+      )}
+    </section>
+  )
+}
+
+function PlaylistImport() {
+  const snapshotCount = useLiveQuery(() => db.playlistSnapshots.count(), [])
+  const [fileName, setFileName] = useState('')
+  const [source, setSource] = useState<PlaylistImportPreview['source']>('spotify_account_export')
+  const [candidates, setCandidates] = useState<PlaylistCandidate[]>([])
+  const [preview, setPreview] = useState<PlaylistImportPreview | null>(null)
+  const [name, setName] = useState('')
+  const [spotifyUrl, setSpotifyUrl] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [doneId, setDoneId] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  async function handleFile(file: File) {
+    setError('')
+    setDoneId(null)
+    setBusy(true)
+    try {
+      const text = await file.text()
+      const parsed = parsePlaylistFile(file.name, text)
+      setFileName(file.name)
+      setSource(parsed.source)
+      setCandidates(parsed.candidates)
+      await pick(parsed.candidates[0], parsed.source, file.name)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Datei konnte nicht gelesen werden.')
+      setCandidates([])
+      setPreview(null)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function pick(candidate: PlaylistCandidate, src: PlaylistImportPreview['source'], file: string) {
+    const p = await buildPlaylistPreview(file, src, candidate)
+    setPreview(p)
+    setName(candidate.name)
+  }
+
+  async function confirm() {
+    if (!preview) return
+    setBusy(true)
+    const id = await importPlaylistSnapshot(preview, name, spotifyUrl || null)
+    setBusy(false)
+    setPreview(null)
+    setCandidates([])
+    setSpotifyUrl('')
+    setDoneId(id)
+  }
+
+  return (
+    <section className="crate-card space-y-3 p-5">
+      <p className="kicker rule">Die Playlist — Spotify-Playlist-Export</p>
+      <p className="text-sm text-cream-500">
+        {snapshotCount !== undefined && snapshotCount > 0
+          ? `Bereits ${snapshotCount} ${snapshotCount === 1 ? 'Schnappschuss' : 'Schnappschüsse'} importiert. Ein neuer Import wird als neuer Stand gespeichert — die App zeigt dir, was dazukam und was verschwand.`
+          : 'Die Playlist-JSON aus Spotifys Kontodaten-Export (Konto → Datenschutz → Daten herunterladen) oder eine CSV (z. B. von Exportify). Der Name kommt aus deiner Datei — hier ist nichts hart verdrahtet. Jeder Import ist ein Schnappschuss, nichts wird überschrieben.'}
+      </p>
+
+      <button
+        className="flex w-full flex-col items-center gap-2 rounded-sm border border-dashed border-ink-600 px-6 py-10 text-center transition-colors hover:border-rust-500"
+        onClick={() => fileInput.current?.click()}
+        disabled={busy}
+      >
+        <ListMusic className="h-6 w-6 text-cream-600" strokeWidth={1.5} />
+        <span className="text-sm text-cream-300">{busy ? 'Datei wird gelesen…' : 'Playlist-Datei wählen (.json oder .csv)'}</span>
+      </button>
+      <input
+        ref={fileInput}
+        type="file"
+        accept=".json,.csv,application/json,text/csv"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.length) void handleFile(e.target.files[0])
+          e.target.value = ''
+        }}
+      />
+      {error && (
+        <p className="flex items-center gap-2 text-sm text-rust-300">
+          <TriangleAlert className="h-4 w-4" /> {error}
+        </p>
+      )}
+
+      {preview && (
+        <div className="space-y-3 rounded-sm border border-ink-600 bg-ink-900 p-4">
+          <p className="kicker">Vorschau — {fileName}</p>
+          {candidates.length > 1 && (
+            <label className="block text-xs text-cream-500">
+              Diese Datei enthält {candidates.length} Playlists — welche soll importiert werden?
+              <select
+                className="crate-input mt-1"
+                value={preview.candidate.name}
+                onChange={(e) => {
+                  const c = candidates.find((x) => x.name === e.target.value)
+                  if (c) void pick(c, source, fileName)
+                }}
+              >
+                {candidates.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name} ({c.tracks.length} Tracks)</option>
+                ))}
+              </select>
+            </label>
+          )}
+          <div className="flex flex-wrap gap-2 font-mono text-xs">
+            <span className="crate-chip">{preview.candidate.tracks.length.toLocaleString('de-DE')} Tracks</span>
+            {preview.candidate.skipped > 0 && <span className="crate-chip">{preview.candidate.skipped} übersprungen (Episoden/lokale Dateien)</span>}
+            {preview.duplicateRows > 0 && <span className="crate-chip">{preview.duplicateRows} mehrfach enthalten</span>}
+            {preview.diff && <span className="crate-chip">ggü. letztem Import: +{preview.diff.added} / −{preview.diff.removed}</span>}
+          </div>
+          <label className="block text-xs text-cream-500">
+            Name der Playlist (aus der Datei übernommen, änderbar)
+            <input className="crate-input mt-1" value={name} onChange={(e) => setName(e.target.value)} />
+          </label>
+          <label className="block text-xs text-cream-500">
+            Spotify-Link zur Playlist (optional — die App verweist dann darauf)
+            <input className="crate-input mt-1" placeholder="https://open.spotify.com/playlist/…" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} />
+          </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <button className="crate-btn-primary" disabled={preview.candidate.tracks.length === 0 || busy || !name.trim()} onClick={() => void confirm()}>
+              {busy ? 'Importiert…' : `${preview.candidate.tracks.length.toLocaleString('de-DE')} Tracks importieren`}
+            </button>
+            <button className="crate-btn" onClick={() => { setPreview(null); setCandidates([]) }}>Verwerfen</button>
+          </div>
+        </div>
+      )}
+
+      {doneId !== null && (
+        <p className="flex items-center gap-2 text-sm text-cream-300">
+          <CheckCircle2 className="h-4 w-4 text-rust-400" /> Schnappschuss importiert.{' '}
+          <Link to="/playlist" className="text-rust-300 underline underline-offset-2">Zur Playlist-Analyse</Link>
         </p>
       )}
     </section>

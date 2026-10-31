@@ -102,6 +102,8 @@ export interface PlaylistSnapshot {
   source: 'spotify_account_export' | 'exportify_csv' | 'csv_template'
   fileName: string
   trackCount: number
+  /** optional link to the live playlist on Spotify — the app references it, never copies branding */
+  spotifyUrl: string | null
 }
 
 export interface PlaylistTrack {

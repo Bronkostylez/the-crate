@@ -77,7 +77,7 @@ function parseCsvPlaylist(text: string): PlaylistCandidate[] {
   const rows = parseCsv(text)
   if (rows.length === 0) throw new Error('Die CSV-Datei enthält keine Zeilen.')
   const headers = Object.keys(rows[0]).map((h) => h.toLowerCase())
-  const isExportify = headers.includes('track name') && headers.some((h) => h.startsWith('artist name'))
+  const isExportify = headers.includes('track_name') && headers.some((h) => h.startsWith('artist_name'))
   const tracks: ParsedPlaylistTrack[] = []
   let skipped = 0
   rows.forEach((row, i) => {
@@ -89,15 +89,15 @@ function parseCsvPlaylist(text: string): PlaylistCandidate[] {
     let durationMs: number | null = null
     let spotifyUri: string | null = null
     if (isExportify) {
-      trackName = cellStr(row['Track Name'])
-      artistName = cellStr(row['Artist Name(s)'])
-      albumName = cellStr(row['Album Name'])
-      releaseDate = cellStr(row['Album Release Date']) || null
-      const dur = Number(cellStr(row['Track Duration (ms)']))
+      trackName = cellStr(row['track_name'])
+      artistName = cellStr(row['artist_name(s)'])
+      albumName = cellStr(row['album_name'])
+      releaseDate = cellStr(row['album_release_date']) || null
+      const dur = Number(cellStr(row['track_duration_(ms)']))
       durationMs = Number.isFinite(dur) && dur > 0 ? dur : null
-      const addedRaw = cellStr(row['Added At'])
+      const addedRaw = cellStr(row['added_at'])
       addedAt = addedRaw && !Number.isNaN(new Date(addedRaw).getTime()) ? new Date(addedRaw).toISOString() : null
-      spotifyUri = cellStr(row['Track URI']) || null
+      spotifyUri = cellStr(row['track_uri']) || null
     } else {
       // simple template: track,artist,album,year,added_at
       trackName = cellStr(row['track'])
@@ -140,7 +140,7 @@ export function parsePlaylistFile(fileName: string, text: string): { source: Pla
   const candidates = parseCsvPlaylist(text)
   const firstRow = parseCsv(text)[0] ?? {}
   const headers = Object.keys(firstRow).map((h) => h.toLowerCase())
-  const source = headers.includes('track name') ? 'exportify_csv' : 'csv_template'
+  const source = headers.includes('track_name') ? 'exportify_csv' : 'csv_template'
   return { source, candidates }
 }
 
@@ -190,7 +190,7 @@ export async function buildPlaylistPreview(
   }
 }
 
-export async function importPlaylistSnapshot(preview: PlaylistImportPreview, name: string): Promise<string> {
+export async function importPlaylistSnapshot(preview: PlaylistImportPreview, name: string, spotifyUrl: string | null): Promise<string> {
   const snapshotId = crypto.randomUUID()
   const snapshot: PlaylistSnapshot = {
     id: snapshotId,
@@ -199,6 +199,7 @@ export async function importPlaylistSnapshot(preview: PlaylistImportPreview, nam
     source: preview.source,
     fileName: preview.fileName,
     trackCount: preview.candidate.tracks.length,
+    spotifyUrl: spotifyUrl?.trim() || null,
   }
   const rows: PlaylistTrack[] = preview.candidate.tracks.map((t) => ({ ...t, id: crypto.randomUUID(), snapshotId }))
   await db.transaction('rw', db.playlistSnapshots, db.playlistTracks, async () => {
@@ -217,6 +218,10 @@ export async function deleteSnapshot(snapshotId: string): Promise<void> {
 
 export async function renameSnapshot(snapshotId: string, name: string): Promise<void> {
   await db.playlistSnapshots.update(snapshotId, { name: name.trim() })
+}
+
+export async function setSnapshotSpotifyUrl(snapshotId: string, url: string | null): Promise<void> {
+  await db.playlistSnapshots.update(snapshotId, { spotifyUrl: url?.trim() || null })
 }
 
 export async function latestSnapshot(): Promise<PlaylistSnapshot | undefined> {

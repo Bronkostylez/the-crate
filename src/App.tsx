@@ -5,6 +5,7 @@ import { ArchivePage } from './pages/ArchivePage'
 import { ReviewEditorPage } from './pages/ReviewEditorPage'
 import { ImportPage } from './pages/ImportPage'
 import { HistoryPage } from './pages/HistoryPage'
+import { PlaylistPage } from './pages/PlaylistPage'
 import { SettingsPage } from './pages/SettingsPage'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="archive/new" element={<ReviewEditorPage />} />
           <Route path="archive/:id" element={<ReviewEditorPage />} />
           <Route path="history" element={<HistoryPage />} />
+          <Route path="playlist" element={<PlaylistPage />} />
           <Route path="import" element={<ImportPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
