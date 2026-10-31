@@ -25,7 +25,9 @@ from imported or entered rows. Empty data renders an honest empty state.
 
 ## Schema
 
-`supabase/migrations/0001_init.sql`: profiles, user_settings, artists, albums,
+`supabase/migrations/0001_init.sql` + `0002_live_tracking.sql`: profiles,
+user_settings, spotify_connection, listening_history (with duration_ms for the
+"ca." estimate), artists, albums,
 tracks, playlists, playlist_tracks, listening_history, reviews, review_tags,
 recaps, import_jobs. Every private table has `user_id` + RLS policies scoped to
 `auth.uid()`; dedupe unique indexes prevent double artists/albums/tracks/listens
@@ -58,4 +60,6 @@ GitHub Actions (`.github/workflows/deploy.yml`): `npm ci` → build with
 2. Listening history: Spotify Extended Streaming History import + analytics.
 3. Playlist analytics (name comes from the imported playlist, never hardcoded).
 4. The DNA: musical identity engine (preferences vs. actual data).
-5. Recaps (monthly/yearly), PWA service worker, Supabase cloud sync.
+5. Recaps (monthly/yearly), PWA service worker.
+6. Supabase cloud sync + hourly edge-function tracking (`spotify-cron`) —
+   shipped in this stage.

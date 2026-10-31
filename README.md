@@ -88,7 +88,7 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 - **Einstellungen** — Supabase-/Spotify-Zugangsdaten bequem in der App
   eintragen; nichts wird in den Build gebacken, kein Secret berührt das Repo.
 - Läuft komplett offline — das Archiv liegt in IndexedDB, bis der
-  Supabase-Sync in einer späteren Etappe kommt.
+  Supabase-Sync (Cloud-Backup + 24/7-Tracking) in einer späteren Etappe kommt.
 
 Als Nächstes: Supabase-Cloud-Sync (Backup + Sync zwischen Geräten).
 

@@ -12,6 +12,7 @@ import './index.css'
 import App from './App.tsx'
 import { getConfigValue } from './lib/config'
 import { completeSpotifyAuth, setSpotifyError } from './lib/spotify/auth'
+import { pushSpotifyConnection } from './lib/cloud'
 
 /**
  * Spotify OAuth redirect lands on the app root with ?code&state (or ?error).
@@ -29,6 +30,8 @@ async function handleSpotifyCallback(): Promise<boolean> {
   } else {
     try {
       await completeSpotifyAuth(getConfigValue('spotifyClientId'), code!, state!)
+      // best effort: hand the new login to the hourly cloud tracker too
+      void pushSpotifyConnection().catch(() => {})
     } catch (e) {
       setSpotifyError(e instanceof Error ? e.message : 'Spotify-Login fehlgeschlagen.')
     }

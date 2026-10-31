@@ -35,16 +35,19 @@ Konten bringen Cloud-Backup, Sync und Spotify-Daten dazu.
    `supabase/migrations/0001_init.sql` aus dem Repo öffnen, komplett
    kopieren, einfügen, **Run**. Das legt alle Tabellen, Indexes und
    Sicherheitsregeln an.
-3. Dein Login anlegen: **Authentication → Users → Add user → Create new
+3. Gleich danach dasselbe mit `supabase/migrations/0002_live_tracking.sql`
+   — das rüstet den Live-Tracker und den Cloud-Sync nach.
+4. Dein Login anlegen: **Authentication → Users → Add user → Create new
    user**, deine E-Mail + ein Passwort.
-4. **Die Tür abschließen:** In den Authentication-Einstellungen (Sign In /
+5. **Die Tür abschließen:** In den Authentication-Einstellungen (Sign In /
    Providers bzw. Sign-Up-Einstellungen, je nach Dashboard-Version) **„Allow
    new users to sign up" deaktivieren**. Damit kann sich niemand außer dem
    eben angelegten Konto je einloggen.
-5. Zwei Werte kopieren aus **Project Settings → API**:
+6. Zwei Werte kopieren aus **Project Settings → API**:
    - **Project URL** (sieht aus wie `https://abcdefgh.supabase.co`)
    - **anon public**-Key (langes Token, beginnt mit `eyJ…`)
-6. THE CRATE öffnen → **Einstellungen**, beide Werte einfügen, Speichern.
+7. THE CRATE öffnen → **Einstellungen**, beide Werte einfügen, Speichern,
+   dann unten bei **Cloud-Sync** mit deinem neuen Konto anmelden.
 
 > Beide Werte sind *bewusst veröffentlichbar*. Deine Daten schützen dein
 > Login und die Row Level Security, nicht das Verstecken dieser Schlüssel.
@@ -76,7 +79,56 @@ das dauert Tage:
    Woche, kann bis zu 30 Tage dauern).
 4. Etappe 2 bringt den Importer für genau diese JSON-Dateien mit.
 
-## 4 · Deine 30 Album-Reviews
+
+## 4 · 24/7-Tracking einschalten (Edge Function + Cron)
+
+Damit kein Play verloren geht, holt eine kleine Server-Funktion stündlich
+deine neuesten Spotify-Plays ab — auch wenn die App geschlossen ist. Drei
+Schritte, alles Copy-Paste:
+
+1. **Funktion anlegen:** Supabase-Dashboard → **Edge Functions** → **Create
+   function** → Name exakt `spotify-cron` → den kompletten Inhalt von
+   `supabase/functions/spotify-cron/index.ts` aus dem Repo in den Editor
+   kopieren → **Deploy**.
+2. **Stündlichen Zeitplan anlegen:** **SQL Editor → New query** → diesen
+   Block einfügen, die zwei Grossschreib-Platzhalter ersetzen, **Run**:
+
+   ```sql
+   create extension if not exists pg_cron;
+   create extension if not exists pg_net;
+
+   select cron.schedule(
+     'crate-spotify-sync',
+     '23 * * * *',   -- stündlich, Minute 23
+     $$
+     select net.http_post(
+       url := 'https://DEIN-PROJEKT.supabase.co/functions/v1/spotify-cron',
+       headers := jsonb_build_object(
+         'Content-Type', 'application/json',
+         'Authorization', 'Bearer DEIN-SERVICE-ROLE-KEY'
+       )
+     );
+     $$
+   );
+   ```
+
+   `DEIN-PROJEKT` ist derselbe Projekt-Teil wie in deiner Project URL, den
+   **service_role**-Key findest du unter **Project Settings → API**. Das ist
+   der einzige Ort, an dem dieser Schlüssel etwas verloren hat: ein Job in
+   deiner eigenen Datenbank. Nicht ins Repo, nicht in die App.
+3. **Einschalten:** In THE CRATE → **Einstellungen** einmal mit Spotify
+   verbinden UND bei Cloud-Sync anmelden. Die App übergibt dein Spotify-
+   Login dann an deine eigene `spotify_connection`-Tabelle (nur du kannst
+   sie lesen) — ab dem nächsten Stundentakt läuft die Erfassung von allein.
+
+**Prüfen, ob es läuft:** Nach einer Stunde im Dashboard unter **Edge
+Functions → spotify-cron → Logs**, oder im **SQL Editor** mit
+`select * from cron.job_run_details order by start_time desc limit 5;`.
+Neu getrackte Plays siehst du in der App nach dem nächsten **Jetzt
+synchronisieren** — mit ehrlichem „ca." bei der Hörzeit, bis ein Extended
+Export die exakten Minuten liefert.
+
+## 5 · Deine 30 Album-Reviews
 
 1. In THE CRATE: **Import → JSON-Template** (oder CSV für Excel/Sheets).
 2. Eine Zeile pro Album ausfüllen: Artist, Titel, Jahr, Genres, Bewertung,
@@ -90,5 +142,5 @@ das dauert Tage:
 - Nichts zu warten. GitHub Actions deployed bei jedem Push neu.
 - **Import → Export JSON** erstellt jederzeit ein komplettes Backup des
   Archivs.
-- Browserdaten löschen löscht das *lokale* Archiv — vorher exportieren,
-  oder Supabase anbinden (Sync kommt in einer späteren Etappe).
+- Browserdaten löschen löscht das *lokale* Archiv — mit angebundener Cloud
+  holt „Jetzt synchronisieren" alles wieder zurück.

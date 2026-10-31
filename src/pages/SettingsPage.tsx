@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { CheckCircle2, CircleDashed, Music2, Trash2 } from 'lucide-react'
+import { CheckCircle2, CircleDashed, CloudUpload, Music2, Trash2 } from 'lucide-react'
 import { db } from '../db/local'
 import { clearAllReviews } from '../db/reviews'
 import { getConfig, getConfigValue, isValidHttpUrl, setConfigValue } from '../lib/config'
 import { resetSupabaseClient } from '../lib/supabase'
 import { disconnectSpotify, spotifyConnected, spotifyDisplayName, startSpotifyAuth, takeSpotifyError } from '../lib/spotify/auth'
+import { cloudSession, signInCloud, signOutCloud, syncCloud, type CloudSyncResult, type CloudUser } from '../lib/cloud'
 
 export function SettingsPage() {
   const reviews = useLiveQuery(() => db.reviews.toArray(), [])
@@ -14,6 +15,41 @@ export function SettingsPage() {
   const [confirmClear, setConfirmClear] = useState(false)
   const [spotifyError] = useState(takeSpotifyError)
   const [connected, setConnected] = useState(spotifyConnected)
+  const [cloudUser, setCloudUser] = useState<CloudUser | null>(null)
+  const [cloudEmail, setCloudEmail] = useState('')
+  const [cloudPassword, setCloudPassword] = useState('')
+  const [cloudBusy, setCloudBusy] = useState(false)
+  const [cloudError, setCloudError] = useState('')
+  const [cloudResult, setCloudResult] = useState<CloudSyncResult | null>(null)
+
+  useEffect(() => {
+    void cloudSession().then(setCloudUser)
+  }, [])
+
+  async function cloudSignIn() {
+    setCloudBusy(true)
+    setCloudError('')
+    try {
+      setCloudUser(await signInCloud(cloudEmail, cloudPassword))
+      setCloudPassword('')
+    } catch (e) {
+      setCloudError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setCloudBusy(false)
+    }
+  }
+
+  async function cloudSync() {
+    setCloudBusy(true)
+    setCloudError('')
+    try {
+      setCloudResult(await syncCloud())
+    } catch (e) {
+      setCloudError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setCloudBusy(false)
+    }
+  }
 
   function update(key: string, value: string) {
     setSaved(false)
@@ -105,6 +141,84 @@ export function SettingsPage() {
                 <Music2 className="h-4 w-4" /> Mit Spotify verbinden
               </button>
             )}
+          </div>
+        )}
+      </section>
+
+      <section className="crate-card space-y-3 p-5">
+        <p className="kicker rule">Cloud-Sync + 24/7-Tracking</p>
+        {!getConfigValue('supabaseUrl') || !getConfigValue('supabaseAnonKey') ? (
+          <p className="text-sm text-cream-500">
+            Trag oben deine Supabase Project URL und den anon key ein und speichere — dann erscheint hier der
+            Cloud-Login. Anleitung: docs/SETUP.md im Repo.
+          </p>
+        ) : cloudUser ? (
+          <div className="space-y-3">
+            <p className="flex items-center gap-2 text-sm text-cream-100">
+              <CheckCircle2 className="h-4 w-4 text-rust-400" />
+              Verbunden{cloudUser.email ? ` als ${cloudUser.email}` : ''}.
+            </p>
+            <p className="text-sm text-cream-500">
+              Ein Sync lädt alle Plays und Reviews in deine Cloud und holt zurück, was der stündliche Tracker (oder
+              ein anderes Gerät) inzwischen gesammelt hat. Sobald Spotify UND die Cloud verbunden sind, bekommt der
+              Tracker automatisch dein aktuelles Login — ab dann läuft die Erfassung rund um die Uhr, auch wenn die
+              App zu ist.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <button className="crate-btn-primary" disabled={cloudBusy} onClick={() => void cloudSync()}>
+                <CloudUpload className="h-4 w-4" /> {cloudBusy ? 'Synchronisiere …' : 'Jetzt synchronisieren'}
+              </button>
+              <button
+                className="crate-btn text-cream-500 hover:border-rust-600 hover:text-rust-300"
+                onClick={() => {
+                  void signOutCloud().then(() => {
+                    setCloudUser(null)
+                    setCloudResult(null)
+                  })
+                }}
+              >
+                Abmelden
+              </button>
+            </div>
+            {cloudError && <p className="text-sm text-rust-300">{cloudError}</p>}
+            {cloudResult && (
+              <p className="text-sm text-rust-300">
+                Fertig: {cloudResult.playsPushed} Plays hoch, {cloudResult.playsPulled} neu aus der Cloud,{' '}
+                {cloudResult.reviewsPushed} Reviews hoch, {cloudResult.reviewsPulled} übernommen.
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-cream-500">
+              Melde dich mit dem Konto an, das du in Supabase unter Authentication → Users angelegt hast. Danach
+              sichert die App deine Plays und Reviews in der Cloud — und der 24/7-Tracker kann deine Spotify-Plays
+              stündlich abholen, auch wenn die App nicht offen ist.
+            </p>
+            <input
+              className="crate-input font-mono text-xs"
+              type="email"
+              placeholder="E-Mail"
+              value={cloudEmail}
+              onChange={(e) => setCloudEmail(e.target.value)}
+              autoComplete="off"
+            />
+            <input
+              className="crate-input font-mono text-xs"
+              type="password"
+              placeholder="Passwort"
+              value={cloudPassword}
+              onChange={(e) => setCloudPassword(e.target.value)}
+              autoComplete="off"
+            />
+            {cloudError && <p className="text-sm text-rust-300">{cloudError}</p>}
+            <button
+              className="crate-btn-primary"
+              disabled={cloudBusy || !cloudEmail.trim() || !cloudPassword}
+              onClick={() => void cloudSignIn()}
+            >
+              {cloudBusy ? 'Melde an …' : 'Mit der Cloud verbinden'}
+            </button>
           </div>
         )}
       </section>
