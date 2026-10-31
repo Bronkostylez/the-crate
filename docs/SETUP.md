@@ -1,68 +1,54 @@
 # THE CRATE — Einrichtung
 
-Du musst an keiner Stelle selbst Code oder SQL schreiben. Jeder Schritt hier
-ist „Konto anlegen, Wert kopieren, irgendwo einfügen". Insgesamt ungefähr
-20 Minuten.
+**Stand 31.10.2026: Das Supabase-Backend ist komplett eingerichtet.** Datenbank,
+Login, 24/7-Tracking und Zeitplan laufen bereits. Diese Datei dokumentiert den
+Ist-Zustand, deine restlichen Schritte in der App und — ganz unten — die
+Rebuild-Anleitung, falls das Backend je neu aufgesetzt werden muss.
 
-## Was du an Konten brauchst
+## Was bereits läuft
 
-| Konto | Wo | Wofür | Kosten |
-|---|---|---|---|
-| GitHub | github.com | beherbergt Code + die Live-Seite | 0 € |
-| Supabase | supabase.com | Datenbank + Login | Free-Plan |
-| Spotify for Developers | developer.spotify.com | Hördaten (ab Etappe 2) | 0 € |
+| Baustein | Status |
+|---|---|
+| Supabase-Projekt „the-crate", Region Frankfurt (eu-central-1), Free-Plan | aktiv |
+| Datenbankschema (Migrationen 0001 + 0002, 13 Tabellen, Row Level Security) | eingespielt |
+| Dein Login (E-Mail bestätigt), öffentliche Registrierung gesperrt | aktiv |
+| Edge Function `spotify-cron` | deployed |
+| Stündlicher Cron-Job `crate-spotify-sync` (jede Stunde zu Minute 23) | aktiv |
+| Live-Seite über GitHub Actions | deployed bei jedem Push auf `main` |
 
-Die App läuft **sofort, komplett offline und ohne ein einziges Konto**: Das
-Review-Archiv und die Importe liegen in der IndexedDB deines Browsers. Die
-Konten bringen Cloud-Backup, Sync und Spotify-Daten dazu.
+Dein Datenbank-Passwort und dein Cloud-Login-Passwort liegen sicher im
+Passwort-Manager (Vault-Einträge „Supabase the-crate database" und
+„THE CRATE Cloud login").
 
-## 1 · Die Seite online stellen (GitHub Pages)
+## Was du noch tust — nur in der App
 
-1. Das öffentliche Repo `the-crate` existiert bereits; der Code liegt auf
-   `main`.
-2. Im Repo: **Settings → Pages → Build and deployment → Source: „GitHub
-   Actions"** wählen.
-3. Ab jetzt baut und veröffentlicht jeder Push auf `main` die Seite neu unter
-   `https://bronkostylez.github.io/the-crate/`. Der Workflow liegt in
-   `.github/workflows/deploy.yml` — nichts zu konfigurieren, keine Secrets
-   nötig.
+1. **Einstellungen** öffnen und unter **Cloud** eintragen:
+   - **Project URL** und den **anon public**-Key (beide hast du privat
+     bekommen; sie stehen auch im Supabase-Dashboard unter Project
+     Settings → API).
+2. Bei **Cloud-Sync** mit deiner E-Mail und dem Cloud-Login-Passwort
+   anmelden.
+3. Deine **Spotify Client ID** eintragen (siehe Abschnitt „Spotify") und
+   einmal mit Spotify verbinden.
+4. Einmal **Jetzt synchronisieren**. Ab dann läuft alles von allein: Die
+   App übergibt dein Spotify-Login an deine eigene `spotify_connection`-
+   Tabelle (nur du kannst sie lesen), und der Stunden-Job holt deine Plays
+   ab — auch bei geschlossener App.
 
-## 2 · Supabase (Datenbank + Login)
+> Project URL und anon-Key sind *bewusst veröffentlichbar*. Deine Daten
+> schützen dein Login und die Row Level Security, nicht das Verstecken
+> dieser Werte. Der **service_role**-Key ist der gefährliche — der gehört
+> nirgendwo hin außer in den Cron-Job in deiner eigenen Datenbank
+> (schon erledigt).
 
-1. supabase.com → **New project**. Region **Frankfurt (eu-central-1)**
-   wählen. Ein Datenbank-Passwort vergeben und im Passwort-Manager sichern.
-2. Wenn das Projekt fertig ist: **SQL Editor → New query** → die Datei
-   `supabase/migrations/0001_init.sql` aus dem Repo öffnen, komplett
-   kopieren, einfügen, **Run**. Das legt alle Tabellen, Indexes und
-   Sicherheitsregeln an.
-3. Gleich danach dasselbe mit `supabase/migrations/0002_live_tracking.sql`
-   — das rüstet den Live-Tracker und den Cloud-Sync nach.
-4. Dein Login anlegen: **Authentication → Users → Add user → Create new
-   user**, deine E-Mail + ein Passwort.
-5. **Die Tür abschließen:** In den Authentication-Einstellungen (Sign In /
-   Providers bzw. Sign-Up-Einstellungen, je nach Dashboard-Version) **„Allow
-   new users to sign up" deaktivieren**. Damit kann sich niemand außer dem
-   eben angelegten Konto je einloggen.
-6. Zwei Werte kopieren aus **Project Settings → API**:
-   - **Project URL** (sieht aus wie `https://abcdefgh.supabase.co`)
-   - **anon public**-Key (langes Token, beginnt mit `eyJ…`)
-7. THE CRATE öffnen → **Einstellungen**, beide Werte einfügen, Speichern,
-   dann unten bei **Cloud-Sync** mit deinem neuen Konto anmelden.
-
-> Beide Werte sind *bewusst veröffentlichbar*. Deine Daten schützen dein
-> Login und die Row Level Security, nicht das Verstecken dieser Schlüssel.
-> Der **service_role**-Key auf derselben Seite ist der gefährliche — den
-> nirgendwo einfügen.
-
-## 3 · Spotify (ab Etappe 2 gebraucht)
+## Spotify (dein Part)
 
 1. developer.spotify.com → mit deinem Spotify-Konto einloggen → **Create
-   app**.
-2. Name egal („THE CRATE"), Beschreibung egal.
-3. **Redirect URI:** `https://bronkostylez.github.io/the-crate/`
+   app**. Name und Beschreibung egal („THE CRATE").
+2. **Redirect URI:** `https://bronkostylez.github.io/the-crate/`
    (exakt so, inklusive Slash am Ende).
-4. Die **Client ID** in THE CRATE → **Einstellungen** eintragen.
-5. Das **Client Secret** bleibt unangetastet — der Login läuft über PKCE,
+3. Die **Client ID** in THE CRATE → **Einstellungen** eintragen.
+4. Das **Client Secret** bleibt unangetastet — der Login läuft über PKCE,
    Spotifys offizielle Methode für Browser-Apps ohne Secret.
 
 ### Deine komplette Hörhistorie
@@ -79,18 +65,54 @@ das dauert Tage:
    Woche, kann bis zu 30 Tage dauern).
 4. Etappe 2 bringt den Importer für genau diese JSON-Dateien mit.
 
+## Prüfen, ob das Tracking läuft
 
-## 4 · 24/7-Tracking einschalten (Edge Function + Cron)
+Nach einer Stunde im Supabase-Dashboard unter **Edge Functions →
+spotify-cron → Logs**, oder im **SQL Editor** mit
+`select * from cron.job_run_details order by start_time desc limit 5;`.
+Neu getrackte Plays siehst du in der App nach dem nächsten **Jetzt
+synchronisieren** — mit ehrlichem „ca." bei der Hörzeit, bis ein Extended
+Export die exakten Minuten liefert.
 
-Damit kein Play verloren geht, holt eine kleine Server-Funktion stündlich
-deine neuesten Spotify-Plays ab — auch wenn die App geschlossen ist. Drei
-Schritte, alles Copy-Paste:
+## Deine 30 Album-Reviews
 
-1. **Funktion anlegen:** Supabase-Dashboard → **Edge Functions** → **Create
-   function** → Name exakt `spotify-cron` → den kompletten Inhalt von
-   `supabase/functions/spotify-cron/index.ts` aus dem Repo in den Editor
-   kopieren → **Deploy**.
-2. **Stündlichen Zeitplan anlegen:** **SQL Editor → New query** → diesen
+1. In THE CRATE: **Import → JSON-Template** (oder CSV für Excel/Sheets).
+2. Eine Zeile pro Album ausfüllen: Artist, Titel, Jahr, Genres, Bewertung,
+   dein Review-Text, beste/schwächste Tracks. Pflicht sind nur Artist +
+   Titel.
+3. Import-Seite → Datei wählen → Vorschau prüfen → bestätigen.
+   Dein Wortlaut wird wortgleich übernommen.
+
+## Der laufende Betrieb
+
+- Nichts zu warten. GitHub Actions deployed bei jedem Push neu.
+- **Import → Export JSON** erstellt jederzeit ein komplettes Backup des
+  Archivs.
+- Browserdaten löschen löscht das *lokale* Archiv — mit angebundener Cloud
+  holt „Jetzt synchronisieren" alles wieder zurück.
+
+---
+
+## Rebuild-Anleitung (nur falls das Backend neu aufgesetzt werden muss)
+
+Alles Copy-Paste, kein eigener Code nötig. Ungefähr 20 Minuten.
+
+1. **Projekt anlegen:** supabase.com → **New project**, Region **Frankfurt
+   (eu-central-1)**, Datenbank-Passwort vergeben und im Passwort-Manager
+   sichern.
+2. **Schema einspielen:** **SQL Editor → New query** → kompletter Inhalt
+   von `supabase/migrations/0001_init.sql` → **Run**. Gleich danach
+   dasselbe mit `supabase/migrations/0002_live_tracking.sql`.
+3. **Login anlegen:** **Authentication → Users → Add user → Create new
+   user**, deine E-Mail + ein Passwort.
+4. **Tür abschließen:** In den Authentication-Einstellungen **„Allow new
+   users to sign up" deaktivieren**. Damit kann sich niemand außer dem
+   eben angelegten Konto je einloggen.
+5. **Edge Function:** **Edge Functions → Create function** → Name exakt
+   `spotify-cron` → kompletter Inhalt von
+   `supabase/functions/spotify-cron/index.ts` in den Editor kopieren →
+   **Deploy**.
+6. **Stündlichen Zeitplan anlegen:** **SQL Editor → New query** → diesen
    Block einfügen, die zwei Grossschreib-Platzhalter ersetzen, **Run**:
 
    ```sql
@@ -113,34 +135,8 @@ Schritte, alles Copy-Paste:
    ```
 
    `DEIN-PROJEKT` ist derselbe Projekt-Teil wie in deiner Project URL, den
-   **service_role**-Key findest du unter **Project Settings → API**. Das ist
-   der einzige Ort, an dem dieser Schlüssel etwas verloren hat: ein Job in
-   deiner eigenen Datenbank. Nicht ins Repo, nicht in die App.
-3. **Einschalten:** In THE CRATE → **Einstellungen** einmal mit Spotify
-   verbinden UND bei Cloud-Sync anmelden. Die App übergibt dein Spotify-
-   Login dann an deine eigene `spotify_connection`-Tabelle (nur du kannst
-   sie lesen) — ab dem nächsten Stundentakt läuft die Erfassung von allein.
-
-**Prüfen, ob es läuft:** Nach einer Stunde im Dashboard unter **Edge
-Functions → spotify-cron → Logs**, oder im **SQL Editor** mit
-`select * from cron.job_run_details order by start_time desc limit 5;`.
-Neu getrackte Plays siehst du in der App nach dem nächsten **Jetzt
-synchronisieren** — mit ehrlichem „ca." bei der Hörzeit, bis ein Extended
-Export die exakten Minuten liefert.
-
-## 5 · Deine 30 Album-Reviews
-
-1. In THE CRATE: **Import → JSON-Template** (oder CSV für Excel/Sheets).
-2. Eine Zeile pro Album ausfüllen: Artist, Titel, Jahr, Genres, Bewertung,
-   dein Review-Text, beste/schwächste Tracks. Pflicht sind nur Artist +
-   Titel.
-3. Import-Seite → Datei wählen → Vorschau prüfen → bestätigen.
-   Dein Wortlaut wird wortgleich übernommen.
-
-## Der laufende Betrieb
-
-- Nichts zu warten. GitHub Actions deployed bei jedem Push neu.
-- **Import → Export JSON** erstellt jederzeit ein komplettes Backup des
-  Archivs.
-- Browserdaten löschen löscht das *lokale* Archiv — mit angebundener Cloud
-  holt „Jetzt synchronisieren" alles wieder zurück.
+   **service_role**-Key findest du unter **Project Settings → API**. Das
+   ist der einzige Ort, an dem dieser Schlüssel etwas verloren hat: ein
+   Job in deiner eigenen Datenbank. Nicht ins Repo, nicht in die App.
+7. **App verdrahten** wie oben unter „Was du noch tust — nur in der App"
+   beschrieben.
