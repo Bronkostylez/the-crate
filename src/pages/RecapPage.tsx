@@ -27,7 +27,7 @@ export function RecapPage() {
     if (!cardRef.current || !recap) return
     setExporting(true)
     try {
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: '#E8DFC6', scale: 2 })
+      const canvas = await html2canvas(cardRef.current, { backgroundColor: '#0C0D14', scale: 2 })
       const a = document.createElement('a')
       a.href = canvas.toDataURL('image/png')
       a.download = `the-crate-recap-${recap.label.toLowerCase().replace(/\s+/g, '-')}.png`
@@ -87,7 +87,7 @@ export function RecapPage() {
       </header>
 
       {recap && (
-        <div ref={cardRef} className="space-y-6 rounded-sm bg-ink-950 p-1">
+        <div ref={cardRef} className="space-y-6 rounded-lg bg-ink-950 p-1">
           <section className="crate-card border-rust-600 p-6">
             <p className="kicker text-rust-400">The Crate Recap</p>
             <h2 className="mt-1 font-display text-4xl">{recap.label}</h2>

@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Library, History, ListMusic, Dna, CalendarRange, Upload, Settings, Disc3 } from 'lucide-react'
+import { LayoutDashboard, Library, History, ListMusic, Dna, CalendarRange, Upload, Settings } from 'lucide-react'
 import { cx } from '../lib/utils'
+import { HeadphonesDoodle, SquiggleDoodle, StarDoodle, VinylDoodle } from './Doodles'
 
 const NAV = [
   { to: '/', label: 'Überblick', icon: LayoutDashboard, end: true },
@@ -15,10 +16,10 @@ const NAV = [
 
 function navClass({ isActive }: { isActive: boolean }): string {
   return cx(
-    'flex items-center gap-3 rounded-sm px-3 py-2 text-sm transition-colors',
+    'flex items-center gap-3 rounded-full px-3 py-2 text-sm transition-all',
     isActive
-      ? 'border-2 border-[#241C0E] bg-[#241C0E] text-[#F7F0DE] shadow-[2px_2px_0_0_#9C4420]'
-      : 'border-2 border-transparent text-cream-500 hover:bg-ink-800 hover:text-cream-300',
+      ? 'marker font-semibold text-cream-100'
+      : 'text-cream-500 hover:-rotate-1 hover:bg-ink-850 hover:text-cream-300',
   )
 }
 
@@ -26,12 +27,14 @@ export function Layout() {
   return (
     <div className="flex min-h-full flex-col md:flex-row">
       {/* desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r-2 border-[#241C0E] bg-ink-900 p-4 md:flex">
-        <div className="mb-8 px-2 pt-2">
-          <div className="w-fit -rotate-1 border-2 border-[#241C0E] bg-[#241C0E] px-3 py-2 shadow-[3px_3px_0_0_#9C4420]">
-            <p className="font-display text-lg leading-none tracking-wide text-[#F7F0DE]">THE CRATE</p>
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-dashed border-[#EFE9DC]/15 bg-ink-900 p-4 md:flex">
+        <div className="mb-8 px-2 pt-3">
+          {/* logo as a taped-on paper scrap */}
+          <div className="tilt-l relative w-fit rounded-md bg-[#EFE9DC] px-4 py-2 shadow-[0_3px_0_rgba(0,0,0,0.45)]">
+            <span className="tape" />
+            <p className="font-block text-2xl uppercase leading-none tracking-tight text-rust-500">The Crate</p>
           </div>
-          <p className="kicker mt-2.5 whitespace-nowrap">privates archiv · vol. 1</p>
+          <p className="kicker mt-3 whitespace-nowrap">privates archiv · vol. 1</p>
         </div>
         <nav className="flex flex-col gap-1">
           {NAV.map(({ to, label, icon: Icon, end }) => (
@@ -41,8 +44,10 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto px-2">
-          <p className="kicker leading-relaxed">
+        <div className="mt-auto space-y-3 px-2">
+          <VinylDoodle className="h-16 w-16 opacity-50" />
+          <SquiggleDoodle className="h-4 w-24 opacity-60" />
+          <p className="font-display text-xl leading-tight text-cream-500">
             am diggern seit
             <br />
             dem golden age.
@@ -51,8 +56,8 @@ export function Layout() {
       </aside>
 
       {/* mobile top bar */}
-      <div className="sticky top-0 z-20 flex w-full items-center gap-2 overflow-x-auto border-b-2 border-[#241C0E] bg-ink-900/95 px-3 py-2 backdrop-blur md:hidden">
-        <Disc3 className="h-5 w-5 shrink-0 text-rust-500" />
+      <div className="sticky top-0 z-20 flex w-full items-center gap-2 overflow-x-auto border-b border-dashed border-[#EFE9DC]/15 bg-ink-900/95 px-3 py-2 backdrop-blur md:hidden">
+        <VinylDoodle className="h-6 w-6 shrink-0" stroke="#E04424" />
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -60,8 +65,8 @@ export function Layout() {
             end={end}
             className={({ isActive }) =>
               cx(
-                'flex shrink-0 items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-xs',
-                isActive ? 'bg-[#241C0E] text-[#F7F0DE]' : 'text-cream-500',
+                'flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs',
+                isActive ? 'marker font-semibold text-cream-100' : 'text-cream-500',
               )
             }
           >
@@ -71,7 +76,10 @@ export function Layout() {
         ))}
       </div>
 
-      <main className="min-w-0 flex-1 px-4 py-6 md:px-10 md:py-8">
+      <main className="relative min-w-0 flex-1 px-4 py-6 md:px-10 md:py-8">
+        {/* scattered pencil work — decoration only */}
+        <StarDoodle className="pointer-events-none absolute right-6 top-4 h-8 w-8 opacity-30 md:right-12" />
+        <HeadphonesDoodle className="pointer-events-none absolute bottom-6 right-8 hidden h-14 w-14 opacity-25 md:block" />
         <div className="mx-auto max-w-6xl">
           <Outlet />
         </div>

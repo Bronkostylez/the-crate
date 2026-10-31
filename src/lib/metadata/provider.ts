@@ -48,22 +48,36 @@ export function providerFallbackNote(): string {
 
 const tokens = (t: string) => t.toLowerCase().split(/[^a-z0-9äöüß]+/).filter(Boolean)
 
-/** Title fully inside the query, or the query is the title's start. */
-function titleMatchesQuery(title: string, query: string): boolean {
-  const qt = tokens(query)
-  const tt = tokens(title)
-  if (tt.length === 0 || qt.length === 0) return false
-  for (let i = 0; i + tt.length <= qt.length; i++) {
-    if (tt.every((t, j) => qt[i + j] === t)) return true
+/**
+ * Significant tokens: stopwords ("the", "and", ...) removed from both sides.
+ * People search "Low End Theory" for "The Low End Theory" and
+ * "Beats Rhymes & Life" for "Beats, Rhymes and Life" — the small words must
+ * not decide whether an album matches.
+ */
+const STOPWORDS = new Set(['the', 'a', 'an', 'and', 'und', 'of', 'de', 'der', 'die', 'das', 'le', 'la', 'les', 'el'])
+const sig = (t: string) => tokens(t).filter((w) => !STOPWORDS.has(w))
+
+/** needle appears inside hay in order, gaps allowed. */
+function isSubsequence(needle: string[], hay: string[]): boolean {
+  if (needle.length === 0) return false
+  let i = 0
+  for (const t of hay) {
+    if (t === needle[i]) i++
+    if (i === needle.length) return true
   }
-  return qt.length <= tt.length && qt.every((t, j) => tt[j] === t)
+  return false
 }
 
-/** Normalized title equals the query exactly ("The Chronic (2008-2015)" ≠ "The Chronic"). */
+/** Query inside the title, or the title inside the query — in order, stopwords ignored. */
+function titleMatchesQuery(title: string, query: string): boolean {
+  return isSubsequence(sig(query), sig(title)) || isSubsequence(sig(title), sig(query))
+}
+
+/** Same words once the small ones are stripped ("The Low End Theory" = "Low End Theory"). */
 function exactTitle(title: string, query: string): boolean {
-  const qt = tokens(query)
-  const tt = tokens(title)
-  return tt.length > 0 && tt.length === qt.length && tt.every((t, j) => qt[j] === t)
+  const a = sig(title)
+  const b = sig(query)
+  return a.length > 0 && a.length === b.length && a.every((t, j) => b[j] === t)
 }
 
 /** Every artist token appears in the query — catches artist-only searches ("Gang Starr", "Big L"). */
@@ -118,10 +132,11 @@ const compositeProvider: MetadataProvider = {
     } catch {
       if (!fallbackNote) fallbackNote = 'iTunes nicht erreichbar — MusicBrainz springt ein.'
     }
-    if (itunesResults.some((r) => strongItunesHit(r, query))) {
-      return itunesResults.map((r) => ({ ...r, providerId: `itunes:${r.providerId}` }))
-    }
-    // iTunes missed the actual album (90s catalog gaps, mixtapes) → MusicBrainz
+    const itunesHasStrong = itunesResults.some((r) => strongItunesHit(r, query))
+    // MusicBrainz is consulted on every search, not only on iTunes failure:
+    // iTunes ranks same-titled junk (phonk EPs, tribute albums) above the
+    // canonical record ("Low End Theory" finds phonk, not A Tribe Called
+    // Quest), so a strong iTunes hit alone is no reason to stop looking.
     try {
       const mb = await musicbrainzProvider.searchAlbums(query)
       const rank = (r: AlbumSearchResult) => {
@@ -141,10 +156,18 @@ const compositeProvider: MetadataProvider = {
           (a.releaseYear ?? 9999) - (b.releaseYear ?? 9999),
         )
       if (strong.length > 0) {
-        fallbackNote = fallbackNote || 'iTunes hat hier Lücken — die oberen Treffer kommen von MusicBrainz.'
+        fallbackNote =
+          fallbackNote ||
+          (itunesHasStrong
+            ? 'Die oberen Treffer kommen von MusicBrainz.'
+            : 'iTunes hat hier Lücken — die oberen Treffer kommen von MusicBrainz.')
+        // same album from both catalogs: the MusicBrainz entry on top wins,
+        // the iTunes duplicate drops out
+        const mbKeys = new Set(strong.map((r) => `${sig(r.title)}|${sig(r.artist)}`))
+        const rest = itunesResults.filter((r) => !mbKeys.has(`${sig(r.title)}|${sig(r.artist)}`))
         return [
           ...strong.map((r) => ({ ...r, providerId: `musicbrainz:${r.providerId}` })),
-          ...itunesResults.map((r) => ({ ...r, providerId: `itunes:${r.providerId}` })),
+          ...rest.map((r) => ({ ...r, providerId: `itunes:${r.providerId}` })),
         ].slice(0, 12)
       }
     } catch {

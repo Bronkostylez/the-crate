@@ -251,9 +251,9 @@ export function ReviewEditorPage() {
                   key={n}
                   type="button"
                   onClick={() => set('rating', draft.rating === n ? null : n)}
-                  className={`h-9 w-9 rounded-sm border font-mono text-sm transition-colors ${
+                  className={`h-9 w-9 rounded-lg border font-mono text-sm transition-colors ${
                     draft.rating !== null && n <= draft.rating
-                      ? 'border-rust-500 bg-rust-500 text-ink-950'
+                      ? 'border-rust-500 bg-rust-500 text-cream-100'
                       : 'border-ink-600 text-cream-500 hover:border-rust-600 hover:text-cream-100'
                   }`}
                 >
@@ -347,10 +347,10 @@ function TrackPicker({ label, tracks, selected, onToggle, accent }: { label: str
               onClick={() => onToggle(t)}
               title={isExtra ? 'Dein Eintrag — nicht in der gefundenen Trackliste, bleibt erhalten' : undefined}
               className={cx(
-                'rounded-sm border px-2 py-1 text-xs transition-colors',
+                'rounded-lg border px-2 py-1 text-xs transition-colors',
                 active
                   ? accent
-                    ? 'border-rust-500 bg-rust-500 text-ink-950'
+                    ? 'border-rust-500 bg-rust-500 text-cream-100'
                     : 'border-cream-500 bg-cream-300 text-ink-950'
                   : 'border-ink-600 text-cream-500 hover:border-rust-600 hover:text-cream-100',
                 isExtra && 'border-dashed',

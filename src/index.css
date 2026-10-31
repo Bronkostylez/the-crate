@@ -4,13 +4,14 @@
 
 /* ─────────────────────────────────────────────
    THE CRATE — design system
-   Vintage 90s/00s rap magazine × comic panels:
-   aged newsprint, halftone dots, hard ink borders,
-   offset print shadows. Texture yes, clutter no.
+   Cutout collage / mixed media, after De La Soul's
+   "RUN IT BACK!!!" video: photocopied night ground,
+   heavy xerox grain, torn paper scraps, white
+   handwriting, red marker outlines, masking tape.
    ───────────────────────────────────────────── */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html,
@@ -21,88 +22,116 @@ body,
 
 body {
   @apply bg-ink-950 text-cream-100 font-sans antialiased;
-  /* halftone dots + paper grain, both generated inline so they work offline */
+  /* photocopy grain: two noise layers + a soft copier vignette, inline so they work offline */
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
-    radial-gradient(circle, rgba(33, 26, 14, 0.06) 1px, transparent 1.4px);
-  background-size: auto, 9px 9px;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.16' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)' opacity='0.05'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 0%, rgba(239, 233, 220, 0.045), transparent 55%);
 }
 
 ::selection {
-  @apply bg-rust-500 text-ink-950;
+  background: rgba(239, 233, 220, 0.88);
+  color: #0c0d14;
 }
 
 /* slim, unobtrusive scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #b7a67c transparent;
+  scrollbar-color: #3a3d4c transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #b7a67c;
+  background: #3a3d4c;
+  border-radius: 4px;
 }
 
 @layer components {
-  /* editorial kicker label — small caps mono, the magazine voice */
+  /* margin note — small caps mono, the collage caption */
   .kicker {
     @apply font-mono text-[11px] uppercase tracking-kicker text-cream-500;
   }
 
-  /* comic panel: paper card, hard ink border, offset print shadow */
+  /* pasted paper panel: lifted dark sheet with a pale cutout edge and grain */
   .crate-card {
-    @apply rounded-[3px] border-2 border-[#241C0E] bg-ink-850;
-    box-shadow: 3px 3px 0 0 #241c0e;
+    @apply relative rounded-2xl border border-[#EFE9DC]/15 bg-ink-850;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.35),
+      8px 12px 28px -12px rgba(0, 0, 0, 0.55);
+  }
+
+  /* masking tape strip — translucent, yellowed, sticks scraps down */
+  .tape {
+    @apply pointer-events-none absolute left-1/2 top-0 h-5 w-20;
+    transform: translate(-50%, -55%) rotate(-2deg);
+    background: linear-gradient(105deg, rgba(238, 230, 200, 0.32), rgba(238, 230, 200, 0.2));
+    border-left: 2px dashed rgba(12, 13, 20, 0.35);
+    border-right: 2px dashed rgba(12, 13, 20, 0.35);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  /* red marker swash behind words */
+  .marker {
+    background-image: linear-gradient(100deg, rgba(224, 68, 36, 0) 1%, rgba(224, 68, 36, 0.82) 4%, rgba(224, 68, 36, 0.82) 96%, rgba(224, 68, 36, 0) 99%);
+    padding: 0 0.15em;
+    border-radius: 0.2em;
   }
 
   .crate-input {
-    @apply w-full rounded-[3px] border-2 border-[#241C0E] bg-[#FCF7EA] px-3 py-2 text-sm text-cream-100
-      placeholder:text-cream-600 focus:border-rust-500 focus:outline-none;
+    @apply w-full rounded-xl border border-[#EFE9DC]/20 bg-ink-800 px-3 py-2 text-sm text-cream-100
+      placeholder:text-cream-600 focus:border-rust-400 focus:outline-none focus:ring-2 focus:ring-rust-500/40;
   }
 
-  /* buttons press like a stamp: lift on hover, sink on click */
+  /* sticker buttons: round, soft, a little lift, a little wiggle */
   .crate-btn {
-    @apply inline-flex items-center gap-2 rounded-[3px] border-2 border-[#241C0E] bg-ink-850 px-3 py-2
+    @apply inline-flex items-center gap-2 rounded-full border border-[#EFE9DC]/20 bg-ink-850 px-4 py-2
       text-sm font-medium text-cream-300 transition-all
-      hover:-translate-y-px hover:text-cream-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0;
-    box-shadow: 2px 2px 0 0 #241c0e;
-  }
-  .crate-btn:hover:not(:disabled) {
-    box-shadow: 3px 3px 0 0 #241c0e;
+      hover:-translate-y-0.5 hover:-rotate-1 hover:text-cream-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:rotate-0;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
   }
   .crate-btn:active:not(:disabled) {
     transform: translateY(1px);
-    box-shadow: 1px 1px 0 0 #241c0e;
+    box-shadow: none;
   }
 
   .crate-btn-primary {
-    @apply inline-flex items-center gap-2 rounded-[3px] border-2 border-[#241C0E] bg-rust-500 px-3 py-2
-      text-sm font-semibold text-ink-950 transition-all
-      hover:-translate-y-px hover:bg-rust-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0;
-    box-shadow: 2px 2px 0 0 #241c0e;
-  }
-  .crate-btn-primary:hover:not(:disabled) {
-    box-shadow: 3px 3px 0 0 #241c0e;
+    @apply inline-flex items-center gap-2 rounded-full border border-rust-600 bg-rust-500 px-4 py-2
+      text-sm font-semibold text-[#FFF3E2] transition-all
+      hover:-translate-y-0.5 hover:rotate-1 hover:bg-rust-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:rotate-0;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
   }
   .crate-btn-primary:active:not(:disabled) {
     transform: translateY(1px);
-    box-shadow: 1px 1px 0 0 #241c0e;
+    box-shadow: none;
   }
 
+  /* sticker chip */
   .crate-chip {
-    @apply inline-flex items-center rounded-[3px] border border-[#241C0E] bg-ink-800 px-2 py-0.5
+    @apply inline-flex items-center rounded-full border border-[#EFE9DC]/15 bg-ink-800 px-2.5 py-0.5
       font-mono text-[11px] text-cream-300;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
   }
 
-  /* hairline rule with a label, like a magazine section divider */
+  /* torn divider with a label */
   .rule {
     @apply flex items-center gap-3;
   }
   .rule::after {
     content: '';
-    @apply h-px flex-1;
-    background: rgba(36, 28, 14, 0.3);
+    @apply h-0 flex-1;
+    border-top: 2px dashed rgba(239, 233, 220, 0.18);
+    border-radius: 1px;
+  }
+
+  /* slight pasted-on tilts for decoration */
+  .tilt-l {
+    transform: rotate(-1.2deg);
+  }
+  .tilt-r {
+    transform: rotate(1.1deg);
   }
 }

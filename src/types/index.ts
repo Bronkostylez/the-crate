@@ -74,8 +74,9 @@ export interface Play {
   albumName: string | null
   /** ISO timestamp of when the track ended (Spotify export semantics) */
   playedAt: string
+  /** real listening time; 0 on live-sync rows — the recently-played API does not provide it */
   msPlayed: number
-  source: 'spotify_extended' | 'spotify_simple' | 'manual'
+  source: 'spotify_extended' | 'spotify_simple' | 'spotify_api' | 'manual'
   /** which import batch added this row */
   importId: string
 }

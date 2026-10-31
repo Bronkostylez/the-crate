@@ -2,11 +2,12 @@
 
 Tylers privates Hip-Hop-Archiv. Teil Plattensammlung, Teil Review-Archiv,
 Teil Hör-Statistik — gebaut um den Geschmack einer einzigen Person, nicht um
-Klickzahlen. Der Look ist eine Hommage an die Hip-Hop-Magazine der 90er
-und 00er: gealtertes Zeitungspapier, Halbton-Raster, harte Tintenrahmen —
-aufgeräumt trotz Charakter, auch auf dem Handy. Und jede Zahl auf dem
-Bildschirm kommt aus einer echten, importierten Datenzeile. Nichts wird
-erfunden, um ein Chart zu füllen.
+Klickzahlen. Der Look ist eine Cutout-Collage im Mixed-Media-Stil des
+De-La-Soul-Videos „RUN IT BACK!!!": fotokopierter Nacht-Grund mit Xerox-Korn,
+ausgeschnittene Cover mit Tesastreifen aufgeklebt, weiße Handschrift auf
+Dunklem, rote Marker-Outlines und Blockbuchstaben, handgezeichnete Doodles —
+aufgeräumt trotz Bastelei, auch auf dem Handy. Und jede Zahl auf dem Bildschirm kommt aus einer echten,
+importierten Datenzeile. Nichts wird erfunden, um ein Chart zu füllen.
 
 Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 
@@ -25,14 +26,16 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   Deine Handarbeit bleibt: Bewertung, Review-Text, Picks, Genres.
   Quellen in Kaskade: Spotify, sobald du deinen Account verbunden hast
   (Login über PKCE, kein Client-Secret nötig), dann die
-  iTunes/Apple-Music-API, dann MusicBrainz (die offene, Community-gepflegte
-  Musik-Enzyklopädie — keylos und stark genau da, wo die kommerziellen
-  Kataloge Lücken haben: 90er-Hip-Hop, Mixtapes). Schwache Treffer
-  (Tribute-Alben, gleichnamige EPs von Fremdkünstlern) werden erkannt und
-  durch die echten Alben von MusicBrainz ergänzt — iTunes fehlen z. B.
-  Yeezus und The Chronic komplett. Ein Hinweis unter dem Suchfeld sagt dir
-  immer, welche Quelle geliefert hat. Bleibt ein Album unauffindbar, ist
-  die Trackliste ehrlich Freitext.
+  iTunes/Apple-Music-API, dazu immer MusicBrainz (die offene,
+  Community-gepflegte Musik-Enzyklopädie — keylos und stark genau da, wo
+  die kommerziellen Kataloge Lücken haben: 90er-Hip-Hop, Mixtapes).
+  Füllwörter wie "the" und "and" stören den Abgleich nicht ("Low End
+  Theory" findet "The Low End Theory"), und kanonische Alben von
+  MusicBrainz sortieren sich über gleichnamigen Tribute- und Phonk-EPs
+  ein — iTunes fehlen z. B. Yeezus und The Chronic komplett, bei anderen
+  Alben begräbt es das Original unter Fremdkünstlern. Ein Hinweis unter
+  dem Suchfeld sagt dir immer, welche Quelle geliefert hat. Bleibt ein
+  Album unauffindbar, ist die Trackliste ehrlich Freitext.
 - **Import** — JSON- oder CSV-Template, Validierung pro Zeile,
   Duplikat-Erkennung, Vorschau bevor irgendwas geschrieben wird, Strategie
   Überspringen-oder-Überschreiben. Bestehende Reviews werden wortgleich
@@ -63,13 +66,20 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   Zeile steht auf echten Zahlen. Jeder Recap exportierbar als PNG.
 - **PWA** — installierbar (Manifest + Service Worker), die App-Shell läuft
   offline; deine Daten liegen ohnehin lokal in IndexedDB.
-- **Hörverlauf** — Import von Spotifys Extended Streaming History (die
-  JSON-Dateien aus dem Datenexport, mehrere auf einmal). Podcasts und Videos
-  werden übersprungen, Duplikate werden erkannt — auch beim erneuten Import
-  derselben Datei. Daraus gerechnet: Hörzeit, Plays, Artists, Tracks,
-  Minuten pro Tag im Chart, Top-Artists und Top-Tracks nach Hörzeit,
-  Suchfeld und chronologische Liste. Zeitraum wählbar: 7 Tage, 30 Tage,
-  12 Monate, Gesamt. Jede Zahl kommt aus einer echten Zeile deines Exports.
+- **Hörverlauf** — zwei Wege, klar getrennt und beide gekennzeichnet:
+  Der **Live-Sync** holt auf Knopfdruck (und automatisch beim Öffnen) deine
+  letzten 50 Plays direkt von der Spotify-API — sofort da, sobald dein
+  Account verbunden ist. Diese Plays tragen keine Hörzeit in sich, weil
+  Spotify sie nicht herausgibt — die Anzeige sagt das ehrlich, statt
+  Minuten zu schätzen. Der **Extended-Import** (die JSON-Dateien aus
+  Spotifys Datenexport, mehrere auf einmal) bleibt der Weg für die
+  komplette Historie mit echten Hörzeiten. Beide Wege deduplizieren
+  gegeneinander: Was der Sync schon kennt, erkennt der Import an Song +
+  Zeitfenster, und umgekehrt. Daraus gerechnet: Hörzeit, Plays, Artists,
+  Tracks, Minuten pro Tag im Chart, Top-Artists und Top-Tracks nach
+  Hörzeit, Suchfeld und chronologische Liste. Zeitraum wählbar: 7 Tage,
+  30 Tage, 12 Monate, Gesamt. Jede Zahl kommt aus einer echten Zeile —
+  und du siehst, aus welcher Quelle sie stammt.
 
 - **Überblick** — Archiv-Statistiken und Bewertungs-Verteilung, nur aus
   echten Reviews gerechnet. Ehrliche leere Zustände, wo noch keine Daten

@@ -107,7 +107,7 @@ export function ImportPage() {
         <section className="crate-card space-y-3 p-5">
           <p className="kicker rule">2 · Datei importieren</p>
           <button
-            className="flex w-full flex-col items-center gap-2 rounded-sm border border-dashed border-ink-600 px-6 py-12 text-center transition-colors hover:border-rust-500"
+            className="flex w-full flex-col items-center gap-2 rounded-lg border border-dashed border-ink-600 px-6 py-12 text-center transition-colors hover:border-rust-500"
             onClick={() => fileInput.current?.click()}
             disabled={busy}
           >
@@ -201,7 +201,7 @@ function PreviewSection({
         </div>
 
         {invalid.length > 0 && (
-          <div className="rounded-sm border border-rust-700 bg-ink-900 p-3">
+          <div className="rounded-lg border border-rust-700 bg-ink-900 p-3">
             <p className="mb-2 flex items-center gap-2 text-sm text-rust-300">
               <TriangleAlert className="h-4 w-4" /> Diese Zeilen musst du in der Datei korrigieren — sie werden nicht importiert:
             </p>
@@ -325,7 +325,7 @@ function StreamingImport() {
       </p>
 
       <button
-        className="flex w-full flex-col items-center gap-2 rounded-sm border border-dashed border-ink-600 px-6 py-10 text-center transition-colors hover:border-rust-500"
+        className="flex w-full flex-col items-center gap-2 rounded-lg border border-dashed border-ink-600 px-6 py-10 text-center transition-colors hover:border-rust-500"
         onClick={() => fileInput.current?.click()}
         disabled={busy}
       >
@@ -350,7 +350,7 @@ function StreamingImport() {
       )}
 
       {preview && (
-        <div className="space-y-3 rounded-sm border border-ink-600 bg-ink-900 p-4">
+        <div className="space-y-3 rounded-lg border border-ink-600 bg-ink-900 p-4">
           <p className="kicker">Vorschau — {preview.fileNames.join(', ')}</p>
           <div className="flex flex-wrap gap-2 font-mono text-xs">
             <span className="crate-chip">{preview.rowsRead.toLocaleString('de-DE')} Einträge gelesen</span>
@@ -454,7 +454,7 @@ function PlaylistImport() {
       </p>
 
       <button
-        className="flex w-full flex-col items-center gap-2 rounded-sm border border-dashed border-ink-600 px-6 py-10 text-center transition-colors hover:border-rust-500"
+        className="flex w-full flex-col items-center gap-2 rounded-lg border border-dashed border-ink-600 px-6 py-10 text-center transition-colors hover:border-rust-500"
         onClick={() => fileInput.current?.click()}
         disabled={busy}
       >
@@ -478,7 +478,7 @@ function PlaylistImport() {
       )}
 
       {preview && (
-        <div className="space-y-3 rounded-sm border border-ink-600 bg-ink-900 p-4">
+        <div className="space-y-3 rounded-lg border border-ink-600 bg-ink-900 p-4">
           <p className="kicker">Vorschau — {fileName}</p>
           {candidates.length > 1 && (
             <label className="block text-xs text-cream-500">

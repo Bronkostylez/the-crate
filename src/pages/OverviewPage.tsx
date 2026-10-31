@@ -10,11 +10,11 @@ import { EmptyState } from '../components/EmptyState'
 import { formatDate } from '../lib/utils'
 
 const tooltipStyle = {
-  backgroundColor: '#F7F0DE',
-  border: '2px solid #241C0E',
-  borderRadius: 2,
+  backgroundColor: '#181924',
+  border: '1px solid rgba(239,233,220,0.2)',
+  borderRadius: 12,
   fontSize: 12,
-  color: '#211A0E',
+  color: '#EFE9DC',
 }
 
 export function OverviewPage() {
@@ -78,12 +78,12 @@ export function OverviewPage() {
           <div className="mt-4 h-52">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={distribution} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                <XAxis dataKey="rating" stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#D3C5A0' }} />
-                <YAxis stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(36,28,14,0.08)' }} />
+                <XAxis dataKey="rating" stroke="#8B8578" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#3A3D4C' }} />
+                <YAxis stroke="#8B8578" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(239,233,220,0.06)' }} />
                 <Bar dataKey="count" radius={[2, 2, 0, 0]}>
                   {distribution.map((d) => (
-                    <Cell key={d.rating} fill={d.count > 0 ? '#9C4420' : '#DCCFB0'} />
+                    <Cell key={d.rating} fill={d.count > 0 ? '#E04424' : '#3A3D4C'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -97,7 +97,7 @@ export function OverviewPage() {
             {topRated.map((r) => (
               <li key={r.id}>
                 <Link to={`/archive/${r.id}`} className="flex items-center gap-3 py-2.5 hover:bg-ink-800">
-                  <span className="w-12 shrink-0 overflow-hidden rounded-sm"><SleeveArtwork artist={r.artist} albumTitle={r.albumTitle} artworkUrl={r.artworkUrl} /></span>
+                  <span className="w-12 shrink-0 overflow-hidden rounded-lg"><SleeveArtwork artist={r.artist} albumTitle={r.albumTitle} artworkUrl={r.artworkUrl} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-cream-100">{r.albumTitle}</span>
                     <span className="block truncate text-xs text-cream-500">{r.artist}{r.releaseYear ? ` · ${r.releaseYear}` : ''}</span>

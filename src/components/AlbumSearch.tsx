@@ -92,14 +92,14 @@ export function AlbumSearch({ onPick, initialQuery }: { onPick: (album: AlbumSea
       </div>
 
       {open && results.length > 0 && (
-        <ul className="divide-y divide-ink-700 overflow-hidden rounded-sm border border-ink-600 bg-ink-900">
+        <ul className="divide-y divide-ink-700 overflow-hidden rounded-lg border border-ink-600 bg-ink-900">
           {results.map((r) => (
             <li key={r.providerId}>
               <button type="button" className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-ink-800" onClick={() => void pick(r)}>
                 {r.artworkUrl ? (
-                  <img src={r.artworkUrl} alt="" className="h-10 w-10 shrink-0 rounded-sm object-cover" loading="lazy" />
+                  <img src={r.artworkUrl} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" loading="lazy" />
                 ) : (
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-ink-700"><Disc3 className="h-4 w-4 text-cream-600" /></span>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink-700"><Disc3 className="h-4 w-4 text-cream-600" /></span>
                 )}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-cream-100">{r.title}</span>

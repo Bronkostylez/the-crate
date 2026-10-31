@@ -108,7 +108,7 @@ export function ArchivePage() {
                 <option key={s.key} value={s.key}>{s.label}</option>
               ))}
             </select>
-            <div className="flex overflow-hidden rounded-sm border border-ink-600">
+            <div className="flex overflow-hidden rounded-lg border border-ink-600">
               <button className={`px-2.5 py-2 ${view === 'grid' ? 'bg-ink-700 text-cream-100' : 'text-cream-500'}`} onClick={() => setView('grid')} aria-label="Rasteransicht">
                 <LayoutGrid className="h-4 w-4" />
               </button>
@@ -122,9 +122,17 @@ export function ArchivePage() {
             <p className="py-10 text-center text-sm text-cream-500">Auf diese Filterkombination passt nichts.</p>
           ) : view === 'grid' ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {visible.map((r) => (
-                <Link key={r.id} to={`/archive/${r.id}`} className="crate-card group overflow-hidden transition-colors hover:border-rust-600">
-                  <SleeveArtwork artist={r.artist} albumTitle={r.albumTitle} artworkUrl={r.artworkUrl} />
+              {visible.map((r, i) => (
+                <Link
+                  key={r.id}
+                  to={`/archive/${r.id}`}
+                  className={`crate-card group transition-all hover:border-rust-600 ${i % 3 === 1 ? 'tilt-r' : i % 3 === 2 ? 'tilt-l' : ''}`}
+                >
+                  {/* masking tape holds the pasted cover down */}
+                  <span className="tape z-10" />
+                  <div className="overflow-hidden rounded-t-2xl">
+                    <SleeveArtwork artist={r.artist} albumTitle={r.albumTitle} artworkUrl={r.artworkUrl} />
+                  </div>
                   <div className="space-y-1 p-3">
                     <p className="truncate text-sm font-semibold text-cream-100 group-hover:text-rust-300">{r.albumTitle}</p>
                     <p className="truncate text-xs text-cream-500">{r.artist}{r.releaseYear ? ` · ${r.releaseYear}` : ''}</p>
@@ -140,7 +148,7 @@ export function ArchivePage() {
             <div className="crate-card divide-y divide-ink-700">
               {visible.map((r) => (
                 <Link key={r.id} to={`/archive/${r.id}`} className="flex items-center gap-4 px-4 py-3 hover:bg-ink-800">
-                  <span className="w-10 shrink-0 overflow-hidden rounded-sm"><SleeveArtwork artist={r.artist} albumTitle={r.albumTitle} artworkUrl={r.artworkUrl} /></span>
+                  <span className="w-10 shrink-0 overflow-hidden rounded-lg"><SleeveArtwork artist={r.artist} albumTitle={r.albumTitle} artworkUrl={r.artworkUrl} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-cream-100">{r.albumTitle}</span>
                     <span className="block truncate text-xs text-cream-500">{r.artist}</span>

@@ -89,7 +89,19 @@ export async function buildPlayPreview(files: Array<{ name: string; text: string
   // dedupe against what is already imported
   const existing = await db.plays.toArray()
   const existingKeys = new Set(existing.map((p) => playKey(p)))
-  const fresh = unique.filter((p) => !existingKeys.has(playKey(p)))
+  const exactFresh = unique.filter((p) => !existingKeys.has(playKey(p)))
+  // the live sync (Spotify API) timestamps the same play up to seconds
+  // differently than the export — catch those by song + a three-minute window
+  const apiPlays = existing.filter((p) => p.source === 'spotify_api')
+  const fresh = exactFresh.filter(
+    (p) =>
+      !apiPlays.some(
+        (e) =>
+          e.trackName.toLowerCase() === p.trackName.toLowerCase() &&
+          e.artistName.toLowerCase() === p.artistName.toLowerCase() &&
+          Math.abs(new Date(e.playedAt).getTime() - new Date(p.playedAt).getTime()) < 180_000,
+      ),
+  )
 
   const byArtist = new Map<string, number>()
   for (const p of fresh) byArtist.set(p.artistName, (byArtist.get(p.artistName) ?? 0) + 1)

@@ -17,8 +17,13 @@ const LS = {
 
 const AUTHORIZE_URL = 'https://accounts.spotify.com/authorize'
 const TOKEN_URL = 'https://accounts.spotify.com/api/token'
-/** user-read-private lets us show "verbunden als <name>"; library data needs nothing more */
-const SCOPES = 'user-read-private'
+/**
+ * user-read-private lets us show "verbunden als <name>";
+ * user-read-recently-played powers the live history sync. Both are open to
+ * development-mode apps (the Nov-2024 restrictions cover audio
+ * features/analysis/recommendations, not these).
+ */
+const SCOPES = 'user-read-private user-read-recently-played'
 
 function base64url(bytes: Uint8Array): string {
   let s = ''

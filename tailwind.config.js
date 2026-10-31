@@ -4,34 +4,41 @@ export default {
   theme: {
     extend: {
       colors: {
-        /* aged newsprint — 90s rap-magazine paper, lightest to darkest tan */
+        /* xerox black — the photocopied night ground, darkest to lightest slate */
         ink: {
-          950: '#E8DFC6',
-          900: '#EFE7D2',
-          850: '#F7F0DE',
-          800: '#E5DABE',
-          700: '#D3C5A0',
-          600: '#B7A67C',
-          500: '#94835C',
+          950: '#0C0D14',
+          900: '#11121B',
+          850: '#181924',
+          800: '#1F212E',
+          700: '#2A2C3A',
+          600: '#3A3D4C',
+          500: '#565A6B',
         },
-        /* print ink — warm near-black for text on paper */
+        /* bone white — handwriting and paper scraps on the dark ground */
         cream: {
-          100: '#211A0E',
-          300: '#3D3421',
-          500: '#675A3B',
-          600: '#827452',
+          100: '#EFE9DC',
+          300: '#CBC5B6',
+          500: '#9D9789',
+          600: '#7C766C',
         },
-        /* aged cover red — printed, slightly faded, never neon */
+        /* marker pens — red is the star, tape-yellow and cop-light blue support */
+        marker: {
+          yellow: '#E9C46A',
+          olive: '#8A8B5C',
+          blue: '#7C9AAC',
+        },
+        /* xerox red — the big block letters and marker outlines from the video */
         rust: {
-          300: '#C4703F',
-          400: '#B0542A',
-          500: '#9C4420',
-          600: '#80371A',
-          700: '#662C14',
+          300: '#F06545',
+          400: '#E04424',
+          500: '#C93018',
+          600: '#A32412',
+          700: '#7E1C0E',
         },
       },
       fontFamily: {
-        display: ['"Archivo Black"', 'Archivo', 'system-ui', 'sans-serif'],
+        display: ['"Caveat"', 'cursive'],
+        block: ['"Archivo Black"', 'sans-serif'],
         sans: ['Archivo', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },

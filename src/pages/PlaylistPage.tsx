@@ -22,11 +22,11 @@ import { formatDuration } from '../db/plays'
 import type { PlaylistSnapshot, PlaylistTrack, SnapshotDiff } from '../types'
 
 const tooltipStyle = {
-  backgroundColor: '#F7F0DE',
-  border: '2px solid #241C0E',
-  borderRadius: 2,
+  backgroundColor: '#181924',
+  border: '1px solid rgba(239,233,220,0.2)',
+  borderRadius: 12,
   fontSize: 12,
-  color: '#211A0E',
+  color: '#EFE9DC',
 }
 
 const SOURCE_LABELS: Record<PlaylistSnapshot['source'], string> = {
@@ -118,12 +118,12 @@ export function PlaylistPage() {
                 <div className="mt-4 h-48">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={stats.decades} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                      <XAxis dataKey="decade" stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#D3C5A0' }} />
-                      <YAxis stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} />
-                      <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(36,28,14,0.08)' }} formatter={(v) => [`${v} Tracks`, 'Jahrzehnt']} />
+                      <XAxis dataKey="decade" stroke="#8B8578" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#3A3D4C' }} />
+                      <YAxis stroke="#8B8578" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(239,233,220,0.06)' }} formatter={(v) => [`${v} Tracks`, 'Jahrzehnt']} />
                       <Bar dataKey="count" radius={[2, 2, 0, 0]}>
                         {stats.decades.map((d) => (
-                          <Cell key={d.decade} fill="#C05B24" />
+                          <Cell key={d.decade} fill="#E04424" />
                         ))}
                       </Bar>
                     </BarChart>
