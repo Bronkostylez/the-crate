@@ -158,7 +158,7 @@ export function HistoryPage() {
         </div>
       </header>
 
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4 animate-stagger">
         <StatCard
           label="Hörzeit"
           value={`${stats.estimatedMs > 0 ? 'ca. ' : ''}${formatDuration(stats.totalMs)}`}
@@ -187,7 +187,7 @@ export function HistoryPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="crate-card p-5">
           <p className="kicker rule">Top Artists <span className="normal-case tracking-normal">(nach Hörzeit)</span></p>
           <ol className="mt-3 divide-y divide-ink-700">

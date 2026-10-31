@@ -99,7 +99,7 @@ export function PlaylistPage() {
 
       {stats && (
         <>
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-4 animate-stagger">
             <StatCard label="Tracks" value={stats.trackCount.toLocaleString('de-DE')} />
             <StatCard label="Artists" value={stats.artistCount.toLocaleString('de-DE')} />
             <StatCard label="Alben" value={stats.albumCount.toLocaleString('de-DE')} />
@@ -135,7 +135,7 @@ export function PlaylistPage() {
           </section>
 
           {(stats.oldest || stats.newest) && (
-            <section className="grid gap-3 md:grid-cols-2">
+            <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {stats.oldest && (
                 <div className="crate-card px-4 py-3">
                   <p className="kicker">Ältestes Release</p>
@@ -153,7 +153,7 @@ export function PlaylistPage() {
             </section>
           )}
 
-          <section className="grid gap-6 lg:grid-cols-2">
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="crate-card p-5">
               <p className="kicker rule">Meistvertretene Artists</p>
               <ol className="mt-3 divide-y divide-ink-700">
@@ -187,7 +187,7 @@ export function PlaylistPage() {
             </div>
           </section>
 
-          <section className="grid gap-6 lg:grid-cols-2">
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="crate-card p-5">
               <p className="kicker rule">Kollaborationen <span className="normal-case tracking-normal">({stats.collabs.length})</span></p>
               {stats.collabs.length === 0 ? (

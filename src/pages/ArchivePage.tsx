@@ -121,7 +121,7 @@ export function ArchivePage() {
           {visible.length === 0 ? (
             <p className="py-10 text-center text-sm text-cream-500">Auf diese Filterkombination passt nichts.</p>
           ) : view === 'grid' ? (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 animate-stagger">
               {visible.map((r, i) => (
                 <Link
                   key={r.id}

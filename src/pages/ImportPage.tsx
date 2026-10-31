@@ -72,7 +72,7 @@ export function ImportPage() {
       </header>
 
       {/* templates + export */}
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="crate-card space-y-3 p-5">
           <p className="kicker rule">1 · Template</p>
           <p className="text-sm text-cream-500">

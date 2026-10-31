@@ -91,7 +91,7 @@ export function RecapPage() {
           <section className="crate-card border-rust-600 p-6">
             <p className="kicker text-rust-400">The Crate Recap</p>
             <h2 className="mt-1 font-display text-4xl">{recap.label}</h2>
-            <div className="mt-4 grid grid-cols-3 gap-3">
+            <div className="mt-4 grid grid-cols-3 gap-3 animate-stagger">
               <div>
                 <p className="kicker">Hörzeit</p>
                 <p className="mt-1 font-display text-2xl text-cream-100">
@@ -112,7 +112,7 @@ export function RecapPage() {
             </div>
           </section>
 
-          <section className="grid gap-6 lg:grid-cols-3">
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="crate-card p-5">
               <p className="kicker rule">Top Artists</p>
               <ol className="mt-3 divide-y divide-ink-700">
@@ -162,7 +162,7 @@ export function RecapPage() {
           </section>
 
           {(recap.topGenres.length > 0 || recap.newArtists.length > 0 || recap.bestDay) && (
-            <section className="grid gap-6 lg:grid-cols-3">
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {recap.topGenres.length > 0 && (
                 <div className="crate-card p-5">
                   <p className="kicker rule">Top Genres <span className="normal-case tracking-normal">(gematcht)</span></p>

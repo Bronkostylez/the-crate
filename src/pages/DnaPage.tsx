@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { Disclosure } from '../components/Disclosure'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -18,6 +19,8 @@ const tooltipStyle = {
 }
 
 export function DnaPage() {
+  // secondary blocks start collapsed on the phone, open on the desktop
+  const [desktopDefault] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768)
   const reviews = useLiveQuery(() => db.reviews.toArray(), [])
   const plays = useLiveQuery(() => db.plays.toArray(), [])
 
@@ -68,7 +71,7 @@ export function DnaPage() {
       )}
 
       {dna.genres.length > 0 && (
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="crate-card p-5">
             <p className="kicker rule">Genre-Profil <span className="normal-case tracking-normal">(aus deinen Reviews)</span></p>
             <ol className="mt-3 divide-y divide-ink-700">
@@ -131,7 +134,7 @@ export function DnaPage() {
       )}
 
       {dna.scenes.length > 0 && (
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="crate-card p-5">
             <p className="kicker rule">Szenen <span className="normal-case tracking-normal">(aus deinen eigenen Genre-Tags)</span></p>
             <ol className="mt-3 divide-y divide-ink-700">
@@ -163,7 +166,7 @@ export function DnaPage() {
       )}
 
       {(dna.heardNotRated.length > 0 || dna.ratedNotHeard.length > 0) && (
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="crate-card p-5">
             <p className="kicker rule">Viel gehört, (fast) nicht bewertet</p>
             {dna.heardNotRated.length === 0 ? (
@@ -229,7 +232,7 @@ export function DnaPage() {
 
       <section className="space-y-3">
         <p className="kicker rule">Fragen an deine DNA</p>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {dna.jazzShare && (
             <AnswerCard
               question="Wie viel Jazz steckt in deinen Favoriten?"
@@ -262,14 +265,25 @@ export function DnaPage() {
               caveat="Halbiert nach Anzahl der Plays, nicht nach Kalender. Richtige Zeitreisen kommen mit mehr Daten."
             />
           )}
-          <LockedCard question="Bevorzuge ich DJ-Premier-Produktionen?" reason="Braucht Credits-Daten — die Spotify-API liefert sie leider nicht. Eine Credits-Quelle (z. B. Genius) könnte das später öffnen." />
-          <LockedCard question="Welche Produzenten dominieren meine Favoriten?" reason="Braucht Credits-Daten — die Spotify-API liefert sie leider nicht. Eine Credits-Quelle (z. B. Genius) könnte das später öffnen." />
-          <LockedCard question="Welche Rap-Stile und Album-Konzepte bewerte ich höher?" reason="Braucht deine eigenen Tags — pflege Stile und Konzepte als Tags in deinen Reviews, dann rechnet The DNA damit." />
         </div>
-        <p className="text-xs text-cream-600">
-          Gesperrt bleibt, was die Daten nicht hergeben: Producer-Credits liefert auch die Spotify-API nicht,
-          Stil-/Konzept-Fragen brauchen deine Tags. Geraten wird hier nicht.
-        </p>
+        <Disclosure
+          defaultOpen={desktopDefault}
+          title={
+            <span className="flex items-center gap-2 text-sm text-cream-500">
+              <Lock className="h-3.5 w-3.5" /> 3 gesperrte Fragen — und warum
+            </span>
+          }
+        >
+          <div className="grid grid-cols-1 gap-3 pb-1 md:grid-cols-2">
+            <LockedCard question="Bevorzuge ich DJ-Premier-Produktionen?" reason="Braucht Credits-Daten — die Spotify-API liefert sie leider nicht. Eine Credits-Quelle (z. B. Genius) könnte das später öffnen." />
+            <LockedCard question="Welche Produzenten dominieren meine Favoriten?" reason="Braucht Credits-Daten — die Spotify-API liefert sie leider nicht. Eine Credits-Quelle (z. B. Genius) könnte das später öffnen." />
+            <LockedCard question="Welche Rap-Stile und Album-Konzepte bewerte ich höher?" reason="Braucht deine eigenen Tags — pflege Stile und Konzepte als Tags in deinen Reviews, dann rechnet The DNA damit." />
+          </div>
+          <p className="text-xs text-cream-600">
+            Gesperrt bleibt, was die Daten nicht hergeben: Producer-Credits liefert auch die Spotify-API nicht,
+            Stil-/Konzept-Fragen brauchen deine Tags. Geraten wird hier nicht.
+          </p>
+        </Disclosure>
       </section>
     </div>
   )

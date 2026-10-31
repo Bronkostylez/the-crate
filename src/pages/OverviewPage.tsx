@@ -65,14 +65,14 @@ export function OverviewPage() {
         <h1 className="mt-1 font-display text-3xl md:text-4xl">Dein Hip-Hop-Universum, in Zahlen.</h1>
       </header>
 
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4 animate-stagger">
         <StatCard label="Rezensierte Alben" value={reviews.length} />
         <StatCard label="Ø Bewertung" value={avg === null ? '—' : avg.toFixed(1)} sub={rated.length ? `aus ${rated.length} bewerteten Alben` : undefined} />
         <StatCard label="Perfekte 10en" value={tens} />
         <StatCard label="Artists im Archiv" value={artistCount} sub={`${genreCount} Genres getaggt`} />
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2 animate-stagger">
         <div className="crate-card p-5">
           <p className="kicker rule">Bewertungs-Verteilung</p>
           <div className="mt-4 h-52">

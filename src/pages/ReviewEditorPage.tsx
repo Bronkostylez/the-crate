@@ -211,7 +211,7 @@ export function ReviewEditorPage() {
 
       <AlbumSearch onPick={onAlbumPicked} initialQuery={seedQuery} />
 
-      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
         <div className="space-y-3">
           <div className="crate-card overflow-hidden">
             <SleeveArtwork artist={draft.artist || '?'} albumTitle={draft.albumTitle || 'Ohne Titel'} artworkUrl={draft.artworkUrl} />
@@ -224,7 +224,7 @@ export function ReviewEditorPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <label className="block space-y-1">
               <span className="kicker">Artist *</span>
               <input className="crate-input" value={draft.artist} onChange={(e) => set('artist', e.target.value)} placeholder="Gang Starr" />
@@ -289,7 +289,7 @@ export function ReviewEditorPage() {
               <TrackPicker label="Schwächste Tracks" tracks={albumTracks} selected={draft.worstTracks} onToggle={(t) => toggleTrack('worstTracks', t)} />
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <label className="block space-y-1">
                 <span className="kicker">Beste Tracks <span className="normal-case tracking-normal text-cream-600">(mit ; trennen)</span></span>
                 <input className="crate-input" value={bestText} onChange={(e) => setBestText(e.target.value)} placeholder="The World Is Yours; Memory Lane" />
@@ -301,7 +301,7 @@ export function ReviewEditorPage() {
             </div>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <label className="block space-y-1">
               <span className="kicker">Genres <span className="normal-case tracking-normal text-cream-600">(mit ; trennen)</span></span>
               <input className="crate-input" value={genresText} onChange={(e) => setGenresText(e.target.value)} placeholder="East Coast Hip-Hop; Jazz Rap" />
