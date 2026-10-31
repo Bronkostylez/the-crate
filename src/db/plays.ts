@@ -1,6 +1,20 @@
 import { db } from './local'
 import type { ParsedPlay, Play, PlayImportPreview } from '../types'
 
+/**
+ * Minutes for stats: exact ms_played when an export recorded it, otherwise the
+ * live-sync estimate — one full track length per play. Never silently mix the
+ * two: playIsEstimated marks every row whose minutes are the estimate.
+ */
+export function playEffectiveMs(p: Play): number {
+  if (p.msPlayed > 0) return p.msPlayed
+  return p.source === 'spotify_api' ? (p.durationMs ?? 0) : p.msPlayed
+}
+
+export function playIsEstimated(p: Play): boolean {
+  return p.source === 'spotify_api' && p.msPlayed === 0 && (p.durationMs ?? 0) > 0
+}
+
 // ── parsing: Spotify Extended Streaming History + the simple account export ──
 
 interface ExtendedRow {
@@ -91,17 +105,21 @@ export async function buildPlayPreview(files: Array<{ name: string; text: string
   const existingKeys = new Set(existing.map((p) => playKey(p)))
   const exactFresh = unique.filter((p) => !existingKeys.has(playKey(p)))
   // the live sync (Spotify API) timestamps the same play up to seconds
-  // differently than the export — catch those by song + a three-minute window
+  // differently than the export — catch those by song + a three-minute window.
+  // these are not duplicates to drop: the export row REPLACES the estimated
+  // live-sync row with the exact listening time (see importPlays).
   const apiPlays = existing.filter((p) => p.source === 'spotify_api')
-  const fresh = exactFresh.filter(
-    (p) =>
-      !apiPlays.some(
-        (e) =>
-          e.trackName.toLowerCase() === p.trackName.toLowerCase() &&
-          e.artistName.toLowerCase() === p.artistName.toLowerCase() &&
-          Math.abs(new Date(e.playedAt).getTime() - new Date(p.playedAt).getTime()) < 180_000,
-      ),
-  )
+  let replacesEstimates = 0
+  const fresh = exactFresh.filter((p) => {
+    const replaces = apiPlays.some(
+      (e) =>
+        e.trackName.toLowerCase() === p.trackName.toLowerCase() &&
+        e.artistName.toLowerCase() === p.artistName.toLowerCase() &&
+        Math.abs(new Date(e.playedAt).getTime() - new Date(p.playedAt).getTime()) < 180_000,
+    )
+    if (replaces) replacesEstimates++
+    return true
+  })
 
   const byArtist = new Map<string, number>()
   for (const p of fresh) byArtist.set(p.artistName, (byArtist.get(p.artistName) ?? 0) + 1)
@@ -117,7 +135,8 @@ export async function buildPlayPreview(files: Array<{ name: string; text: string
     validPlays: fresh,
     skippedNonMusic,
     skippedInvalid,
-    duplicates: all.length - fresh.length - 0,
+    duplicates: all.length - fresh.length,
+    replacesEstimates,
     firstPlay: sorted[0]?.playedAt ?? null,
     lastPlay: sorted[sorted.length - 1]?.playedAt ?? null,
     topArtists,
@@ -131,6 +150,22 @@ function playKey(p: { playedAt: string; trackName: string; artistName: string })
 export async function importPlays(plays: ParsedPlay[], source: Play['source']): Promise<number> {
   const importId = crypto.randomUUID()
   const rows: Play[] = plays.map((p) => ({ ...p, id: crypto.randomUUID(), source, importId }))
+  if (source === 'spotify_extended' || source === 'spotify_simple') {
+    // exact export rows replace the live sync's estimated rows for the same
+    // play (song + three-minute window) — no double counting at the seam
+    const apiRows = (await db.plays.toArray()).filter((p) => p.source === 'spotify_api')
+    const replacedIds = apiRows
+      .filter((e) =>
+        rows.some(
+          (p) =>
+            e.trackName.toLowerCase() === p.trackName.toLowerCase() &&
+            e.artistName.toLowerCase() === p.artistName.toLowerCase() &&
+            Math.abs(new Date(e.playedAt).getTime() - new Date(p.playedAt).getTime()) < 180_000,
+        ),
+      )
+      .map((e) => e.id)
+    if (replacedIds.length > 0) await db.plays.bulkDelete(replacedIds)
+  }
   await db.plays.bulkAdd(rows)
   return rows.length
 }
@@ -140,6 +175,8 @@ export async function importPlays(plays: ParsedPlay[], source: Play['source']): 
 export interface HistoryStats {
   totalPlays: number
   totalMs: number
+  /** part of totalMs that comes from live-sync estimates (track length), not exact export minutes */
+  estimatedMs: number
   artists: number
   tracks: number
   topArtists: Array<{ name: string; plays: number; ms: number }>
@@ -155,20 +192,23 @@ export function computeHistoryStats(plays: Play[], days: number | null): History
   const trackMap = new Map<string, { name: string; artist: string; plays: number; ms: number }>()
   const dayMap = new Map<string, number>()
   let totalMs = 0
+  let estimatedMs = 0
 
   for (const p of inRange) {
-    totalMs += p.msPlayed
+    const ms = playEffectiveMs(p)
+    if (playIsEstimated(p)) estimatedMs += ms
+    totalMs += ms
     const a = artistMap.get(p.artistName) ?? { plays: 0, ms: 0 }
     a.plays++
-    a.ms += p.msPlayed
+    a.ms += ms
     artistMap.set(p.artistName, a)
     const tk = `${p.trackName}::${p.artistName}`
     const t = trackMap.get(tk) ?? { name: p.trackName, artist: p.artistName, plays: 0, ms: 0 }
     t.plays++
-    t.ms += p.msPlayed
+    t.ms += ms
     trackMap.set(tk, t)
     const day = p.playedAt.slice(0, 10)
-    dayMap.set(day, (dayMap.get(day) ?? 0) + p.msPlayed)
+    dayMap.set(day, (dayMap.get(day) ?? 0) + ms)
   }
 
   const minutesPerDay = [...dayMap.entries()]
@@ -178,6 +218,7 @@ export function computeHistoryStats(plays: Play[], days: number | null): History
   return {
     totalPlays: inRange.length,
     totalMs,
+    estimatedMs,
     artists: artistMap.size,
     tracks: trackMap.size,
     topArtists: [...artistMap.entries()].sort((a, b) => b[1].ms - a[1].ms).slice(0, 10).map(([name, v]) => ({ name, ...v })),

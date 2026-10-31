@@ -6,9 +6,10 @@
  * not the full archive — the Extended Streaming History import remains the
  * way for the complete history with real listening time.
  *
- * recently-played carries no ms_played, so synced rows store msPlayed: 0.
- * The play is real, the minutes are unknown — the UI says so instead of
- * inventing listening time.
+ * recently-played carries no ms_played, so synced rows store msPlayed: 0
+ * plus the track's duration_ms. Stats estimate listening time as one full
+ * track length per play, always marked "ca." in the UI — and a later Extended
+ * export replaces these estimates with exact minutes for its time range.
  */
 import { db } from '../../db/local'
 import { importPlays } from '../../db/plays'
@@ -27,6 +28,7 @@ interface RecentlyPlayedItem {
     name?: unknown
     artists?: Array<{ name?: unknown }>
     album?: { name?: unknown }
+    duration_ms?: unknown
   } | null
 }
 
@@ -101,12 +103,26 @@ export async function syncRecentlyPlayed(): Promise<SyncResult> {
       artistName: artists.join(', '),
       albumName: typeof item.track?.album?.name === 'string' && item.track.album.name.trim() ? item.track.album.name.trim() : null,
       playedAt: playedAt.toISOString(),
-      msPlayed: 0, // unknown, not zero — shown as "–" in the UI
+      msPlayed: 0, // unknown, not zero — the UI estimates it from durationMs
+      durationMs:
+        typeof item.track?.duration_ms === 'number' && item.track.duration_ms > 0 ? Math.round(item.track.duration_ms) : null,
     })
   }
 
   const existingKeys = new Set(existing.map(keyOf))
   const fresh = parsed.filter((p) => !existingKeys.has(keyOf(p)) && !existing.some((e) => samePlayWindow(e, p)))
+
+  // backfill durationMs on rows synced before estimates existed
+  const backfill = existing.filter(
+    (e) =>
+      e.source === 'spotify_api' &&
+      (e.durationMs ?? 0) <= 0 &&
+      parsed.some((p) => keyOf(p) === keyOf(e) && (p.durationMs ?? 0) > 0),
+  )
+  for (const row of backfill) {
+    const match = parsed.find((p) => keyOf(p) === keyOf(row))
+    await db.plays.update(row.id, { durationMs: match?.durationMs ?? null })
+  }
 
   const added = fresh.length > 0 ? await importPlays(fresh, 'spotify_api') : 0
   const syncedAt = new Date().toISOString()

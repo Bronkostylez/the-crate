@@ -76,6 +76,8 @@ export interface Play {
   playedAt: string
   /** real listening time; 0 on live-sync rows — the recently-played API does not provide it */
   msPlayed: number
+  /** track length from the API (live-sync rows) — basis for the honest "ca." minute estimate */
+  durationMs?: number | null
   source: 'spotify_extended' | 'spotify_simple' | 'spotify_api' | 'manual'
   /** which import batch added this row */
   importId: string
@@ -88,6 +90,8 @@ export interface PlayImportPreview {
   skippedNonMusic: number
   skippedInvalid: number
   duplicates: number
+  /** live-sync rows this import upgrades to exact listening times */
+  replacesEstimates: number
   firstPlay: string | null
   lastPlay: string | null
   topArtists: Array<{ artist: string; plays: number }>
@@ -99,6 +103,8 @@ export interface ParsedPlay {
   albumName: string | null
   playedAt: string
   msPlayed: number
+  /** only set by the live sync (track.length from the API), never by exports */
+  durationMs?: number | null
 }
 
 /** One full-state snapshot of a playlist import (THE PLAYLIST section). */

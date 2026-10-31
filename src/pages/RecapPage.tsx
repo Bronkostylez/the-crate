@@ -94,7 +94,12 @@ export function RecapPage() {
             <div className="mt-4 grid grid-cols-3 gap-3">
               <div>
                 <p className="kicker">Hörzeit</p>
-                <p className="mt-1 font-display text-2xl text-cream-100">{formatDuration(recap.totalMs)}</p>
+                <p className="mt-1 font-display text-2xl text-cream-100">
+                  {recap.estimatedMs > 0 ? 'ca. ' : ''}{formatDuration(recap.totalMs)}
+                </p>
+                {recap.estimatedMs > 0 && (
+                  <p className="mt-0.5 text-[11px] text-cream-600">inkl. Schätzung aus Songlängen (Live-Sync)</p>
+                )}
               </div>
               <div>
                 <p className="kicker">Plays</p>

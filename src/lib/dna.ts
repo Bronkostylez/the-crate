@@ -1,4 +1,5 @@
 import type { Play, Review } from '../types'
+import { playEffectiveMs, playIsEstimated } from '../db/plays'
 
 /**
  * THE DNA — the musical identity engine.
@@ -45,7 +46,7 @@ export interface MonthPoint {
 }
 
 export interface DnaResult {
-  coverage: { reviews: number; ratedReviews: number; plays: number; matchedPlayMs: number; totalPlayMs: number }
+  coverage: { reviews: number; ratedReviews: number; plays: number; matchedPlayMs: number; totalPlayMs: number; estimatedPlayMs: number }
   genres: GenreStat[]
   genresByListening: Array<{ genre: string; minutes: number }>
   eras: EraStat[]
@@ -147,15 +148,18 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
   const sceneMinutes = new Map<string, number>()
   let matchedPlayMs = 0
   let totalPlayMs = 0
+  let estimatedPlayMs = 0
   for (const p of plays) {
-    totalPlayMs += p.msPlayed
+    const ms = playEffectiveMs(p)
+    if (playIsEstimated(p)) estimatedPlayMs += ms
+    totalPlayMs += ms
     if (!p.albumName) continue
     const review = reviewByAlbum.get(`${norm(p.artistName)}::${norm(p.albumName)}`)
     if (!review) continue
-    matchedPlayMs += p.msPlayed
-    for (const g of review.genres) genreMinutes.set(g, (genreMinutes.get(g) ?? 0) + p.msPlayed)
+    matchedPlayMs += ms
+    for (const g of review.genres) genreMinutes.set(g, (genreMinutes.get(g) ?? 0) + ms)
     const scene = sceneOfGenres(review.genres)
-    if (scene) sceneMinutes.set(scene, (sceneMinutes.get(scene) ?? 0) + p.msPlayed)
+    if (scene) sceneMinutes.set(scene, (sceneMinutes.get(scene) ?? 0) + ms)
   }
   const genresByListening = [...genreMinutes.entries()]
     .sort((a, b) => b[1] - a[1])
@@ -167,7 +171,7 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
   const artistMinutes = new Map<string, number>()
   for (const p of plays) {
     const a = primaryArtist(p.artistName)
-    artistMinutes.set(a, (artistMinutes.get(a) ?? 0) + p.msPlayed)
+    artistMinutes.set(a, (artistMinutes.get(a) ?? 0) + playEffectiveMs(p))
   }
   const artistRatings = new Map<string, number[]>()
   for (const r of reviews) {
@@ -195,9 +199,10 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
   for (const p of plays) {
     const m = p.playedAt.slice(0, 7)
     const cur = byMonth.get(m) ?? { ms: 0, artists: new Map() }
-    cur.ms += p.msPlayed
+    const ms = playEffectiveMs(p)
+    cur.ms += ms
     const a = primaryArtist(p.artistName)
-    cur.artists.set(a, (cur.artists.get(a) ?? 0) + p.msPlayed)
+    cur.artists.set(a, (cur.artists.get(a) ?? 0) + ms)
     byMonth.set(m, cur)
   }
   const monthly: MonthPoint[] = [...byMonth.entries()]
@@ -217,7 +222,7 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
       for (const p of sorted) {
         if (p.playedAt < lo || p.playedAt >= hi) continue
         const a = primaryArtist(p.artistName)
-        m.set(a, (m.get(a) ?? 0) + p.msPlayed)
+        m.set(a, (m.get(a) ?? 0) + playEffectiveMs(p))
       }
       return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([artist, ms]) => ({ artist, minutes: Math.round(ms / 60000) }))
     }
@@ -260,6 +265,7 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
       plays: plays.length,
       matchedPlayMs,
       totalPlayMs,
+      estimatedPlayMs,
     },
     genres,
     genresByListening,

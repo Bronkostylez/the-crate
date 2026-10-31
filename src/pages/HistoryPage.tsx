@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ArrowRight, History, RefreshCw, Search } from 'lucide-react'
 import { db } from '../db/local'
-import { computeHistoryStats, formatDuration } from '../db/plays'
+import { computeHistoryStats, formatDuration, playIsEstimated } from '../db/plays'
 import { StatCard } from '../components/StatCard'
 import { EmptyState } from '../components/EmptyState'
 import { formatDate } from '../lib/utils'
@@ -97,7 +97,7 @@ export function HistoryPage() {
           title="Noch kein Hörverlauf"
           body={
             connected
-              ? 'Du hörst schon, aber hier ist noch nichts angekommen? Hol deine letzten 50 Plays direkt von Spotify — sofort, ohne Export. Für die komplette Historie mit echten Hörzeiten forderst du zusätzlich die Extended Streaming History an (Konto → Datenschutz → Daten herunterladen) und importierst sie hier.'
+              ? 'Du hörst schon, aber hier ist noch nichts angekommen? Hol deine letzten 50 Plays direkt von Spotify — sofort, ohne Export, Hörzeit als ehrliche Schätzung aus der Songlänge. Für die komplette Historie mit exakten Hörzeiten forderst du zusätzlich die Extended Streaming History an (Konto → Datenschutz → Daten herunterladen) und importierst sie hier — sie ersetzt dann die Schätzungen in ihrem Zeitraum.'
               : 'Fordere bei Spotify deine Extended Streaming History an (Konto → Datenschutz → Daten herunterladen) und importiere die JSON-Dateien hier. Jede Statistik kommt dann aus deinen echten Plays — Quelle ist immer am Import erkennbar.'
           }
           action={
@@ -133,8 +133,8 @@ export function HistoryPage() {
               {lastSync
                 ? `Zuletzt synchronisiert: ${formatDate(lastSync)} ${new Date(lastSync).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} · `
                 : ''}
-              Live-Sync holt die letzten 50 Plays — ohne Hörzeit, die gibt Spotify nicht heraus. Die volle
-              Historie mit Minuten kommt weiterhin aus dem Extended-Export (Import).
+              Live-Sync schätzt die Hörzeit aus der Songlänge (mit „ca." markiert). Sobald du einen Extended-Export
+              importierst, ersetzt er die Schätzungen in seinem Zeitraum durch exakte Minuten.
             </p>
           )}
           {syncNote && <p className="mt-1 text-xs text-rust-400">{syncNote}</p>}
@@ -159,7 +159,11 @@ export function HistoryPage() {
       </header>
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Hörzeit" value={formatDuration(stats.totalMs)} />
+        <StatCard
+          label="Hörzeit"
+          value={`${stats.estimatedMs > 0 ? 'ca. ' : ''}${formatDuration(stats.totalMs)}`}
+          sub={stats.estimatedMs > 0 ? `davon ca. ${formatDuration(stats.estimatedMs)} geschätzt (Songlänge × Play)` : undefined}
+        />
         <StatCard label="Plays" value={stats.totalPlays.toLocaleString('de-DE')} />
         <StatCard label="Artists" value={stats.artists.toLocaleString('de-DE')} />
         <StatCard label="Tracks" value={stats.tracks.toLocaleString('de-DE')} />
@@ -235,8 +239,11 @@ export function HistoryPage() {
                   <span className="block truncate text-sm text-cream-100">{p.trackName}</span>
                   <span className="block truncate text-xs text-cream-500">{p.artistName}{p.albumName ? ` · ${p.albumName}` : ''}</span>
                 </span>
-                <span className="hidden w-20 text-right font-mono text-xs text-cream-600 sm:block" title={p.source === 'spotify_api' ? 'Live-Sync: Spotify liefert keine Hörzeit' : undefined}>
-                  {p.source === 'spotify_api' ? '–' : formatDuration(p.msPlayed)}
+                <span
+                  className="hidden w-24 text-right font-mono text-xs text-cream-600 sm:block"
+                  title={playIsEstimated(p) ? 'Live-Sync: geschätzt aus der Songlänge' : p.source === 'spotify_api' ? 'Live-Sync: Songlänge unbekannt' : undefined}
+                >
+                  {playIsEstimated(p) ? `ca. ${formatDuration(p.durationMs ?? 0)}` : p.source === 'spotify_api' ? '–' : formatDuration(p.msPlayed)}
                 </span>
                 <span className="w-28 text-right font-mono text-xs text-cream-600">
                   {formatDate(p.playedAt)} {new Date(p.playedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}

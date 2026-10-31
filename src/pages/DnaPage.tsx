@@ -56,6 +56,7 @@ export function DnaPage() {
         <p className="mt-1 max-w-2xl text-sm text-cream-500">
           Gerechnet aus {dna.coverage.reviews} Reviews ({dna.coverage.ratedReviews} bewertet) und {dna.coverage.plays.toLocaleString('de-DE')} Plays.
           {' '}{matchPct}% deiner Hörzeit lassen sich auf Alben im Archiv matchen.
+          {dna.coverage.estimatedPlayMs > 0 && ' Enthält ca.-Schätzungen aus dem Live-Sync (Songlänge × Play) — ein Extended-Export ersetzt sie durch exakte Minuten. '}
           Kleine Datenlage, ehrliche Zahlen: Das hier sind Korrelationen, keine Beweise — mit wachsendem Archiv wird das Bild schärfer.
         </p>
       </header>

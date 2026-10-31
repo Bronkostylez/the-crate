@@ -359,6 +359,11 @@ function StreamingImport() {
             {preview.skippedNonMusic > 0 && <span className="crate-chip">{preview.skippedNonMusic.toLocaleString('de-DE')} Podcasts/Videos</span>}
             {preview.skippedInvalid > 0 && <span className="crate-chip border-rust-600 text-rust-300">{preview.skippedInvalid} ungültig</span>}
           </div>
+          {preview.replacesEstimates > 0 && (
+            <p className="text-xs text-cream-500">
+              Ersetzt {preview.replacesEstimates.toLocaleString('de-DE')} geschätzte Live-Sync-Plays durch exakte Hörzeiten — nichts wird doppelt gezählt.
+            </p>
+          )}
           {preview.firstPlay && preview.lastPlay && (
             <p className="text-sm text-cream-300">
               Zeitraum: {formatDate(preview.firstPlay)} bis {formatDate(preview.lastPlay)} · {formatDuration(preview.validPlays.reduce((s, p) => s + p.msPlayed, 0))} Hörzeit

@@ -1,4 +1,5 @@
 import type { Play, Review } from '../types'
+import { playEffectiveMs, playIsEstimated } from '../db/plays'
 
 /**
  * THE RECAP — monthly and yearly listening recaps.
@@ -15,6 +16,8 @@ export interface Recap {
   prevLabel: string | null
   playCount: number
   totalMs: number
+  /** part of totalMs estimated from track lengths (live sync), not exact export minutes */
+  estimatedMs: number
   activeDays: number
   topArtists: RecapTopArtist[]
   topTracks: RecapTopTrack[]
@@ -75,13 +78,14 @@ export function computeRecap(plays: Play[], reviews: Review[], year: number, mon
   const cur = plays.filter((p) => inPeriod(p, year, month))
   const prevPlays = plays.filter((p) => inPeriod(p, prev.year, prev.month))
 
-  const totalMs = cur.reduce((s, p) => s + p.msPlayed, 0)
-  const prevMs = prevPlays.reduce((s, p) => s + p.msPlayed, 0)
+  const totalMs = cur.reduce((s, p) => s + playEffectiveMs(p), 0)
+  const prevMs = prevPlays.reduce((s, p) => s + playEffectiveMs(p), 0)
+  const estimatedMs = cur.reduce((s, p) => s + (playIsEstimated(p) ? playEffectiveMs(p) : 0), 0)
 
   const days = new Map<string, number>()
   for (const p of cur) {
     const day = p.playedAt.slice(0, 10)
-    days.set(day, (days.get(day) ?? 0) + p.msPlayed)
+    days.set(day, (days.get(day) ?? 0) + playEffectiveMs(p))
   }
   const bestDayEntry = [...days.entries()].sort((a, b) => b[1] - a[1])[0]
 
@@ -89,23 +93,24 @@ export function computeRecap(plays: Play[], reviews: Review[], year: number, mon
   const trackMs = new Map<string, { name: string; artist: string; ms: number; plays: number }>()
   const albumMs = new Map<string, { name: string; artist: string; ms: number }>()
   for (const p of cur) {
+    const ms = playEffectiveMs(p)
     const a = primaryArtist(p.artistName)
     const ea = artistMs.get(a) ?? { ms: 0, plays: 0 }
-    ea.ms += p.msPlayed; ea.plays++; artistMs.set(a, ea)
+    ea.ms += ms; ea.plays++; artistMs.set(a, ea)
     const tk = `${p.trackName}::${p.artistName}`
     const et = trackMs.get(tk) ?? { name: p.trackName, artist: p.artistName, ms: 0, plays: 0 }
-    et.ms += p.msPlayed; et.plays++; trackMs.set(tk, et)
+    et.ms += ms; et.plays++; trackMs.set(tk, et)
     if (p.albumName) {
       const ak = `${p.albumName}::${a}`
       const el = albumMs.get(ak) ?? { name: p.albumName, artist: a, ms: 0 }
-      el.ms += p.msPlayed; albumMs.set(ak, el)
+      el.ms += ms; albumMs.set(ak, el)
     }
   }
 
   const prevArtistMs = new Map<string, number>()
   for (const p of prevPlays) {
     const a = primaryArtist(p.artistName)
-    prevArtistMs.set(a, (prevArtistMs.get(a) ?? 0) + p.msPlayed)
+    prevArtistMs.set(a, (prevArtistMs.get(a) ?? 0) + playEffectiveMs(p))
   }
   const prevTopArtist = [...prevArtistMs.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
 
@@ -118,10 +123,11 @@ export function computeRecap(plays: Play[], reviews: Review[], year: number, mon
     if (!p.albumName) continue
     const review = reviewByAlbum.get(`${p.artistName.toLowerCase()}::${p.albumName.toLowerCase()}`)
     if (!review) continue
-    for (const g of review.genres) genreMs.set(g, (genreMs.get(g) ?? 0) + p.msPlayed)
+    const ms = playEffectiveMs(p)
+    for (const g of review.genres) genreMs.set(g, (genreMs.get(g) ?? 0) + ms)
     if (review.releaseYear) {
       const d = `${Math.floor(review.releaseYear / 10) * 10}er`
-      decadeMs.set(d, (decadeMs.get(d) ?? 0) + p.msPlayed)
+      decadeMs.set(d, (decadeMs.get(d) ?? 0) + ms)
     }
   }
 
@@ -181,6 +187,7 @@ export function computeRecap(plays: Play[], reviews: Review[], year: number, mon
     prevLabel: prevPlays.length > 0 ? prev.label : null,
     playCount: cur.length,
     totalMs,
+    estimatedMs,
     activeDays: days.size,
     topArtists,
     topTracks,

@@ -69,13 +69,14 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 - **Hörverlauf** — zwei Wege, klar getrennt und beide gekennzeichnet:
   Der **Live-Sync** holt auf Knopfdruck (und automatisch beim Öffnen) deine
   letzten 50 Plays direkt von der Spotify-API — sofort da, sobald dein
-  Account verbunden ist. Diese Plays tragen keine Hörzeit in sich, weil
-  Spotify sie nicht herausgibt — die Anzeige sagt das ehrlich, statt
-  Minuten zu schätzen. Der **Extended-Import** (die JSON-Dateien aus
-  Spotifys Datenexport, mehrere auf einmal) bleibt der Weg für die
-  komplette Historie mit echten Hörzeiten. Beide Wege deduplizieren
-  gegeneinander: Was der Sync schon kennt, erkennt der Import an Song +
-  Zeitfenster, und umgekehrt. Daraus gerechnet: Hörzeit, Plays, Artists,
+  Account verbunden ist. Spotify liefert zu diesen Plays keine gehörten
+  Millisekunden, wohl aber die Songlänge: Die App schätzt die Hörzeit daraus
+  (Songlänge × Play) und markiert jeden solchen Wert ehrlich mit „ca.".
+  Der **Extended-Import** (die JSON-Dateien aus Spotifys Datenexport,
+  mehrere auf einmal) bleibt der Weg für die komplette Historie mit exakten
+  Hörzeiten — und ersetzt dabei die Schätzungen in seinem Zeitraum: Läuft
+  derselbe Song im selben Zeitfenster schon als Live-Sync-Play, wird dessen
+  Schätzung durch den exakten Wert ersetzt, nie doppelt gezählt. Daraus gerechnet: Hörzeit, Plays, Artists,
   Tracks, Minuten pro Tag im Chart, Top-Artists und Top-Tracks nach
   Hörzeit, Suchfeld und chronologische Liste. Zeitraum wählbar: 7 Tage,
   30 Tage, 12 Monate, Gesamt. Jede Zahl kommt aus einer echten Zeile —
