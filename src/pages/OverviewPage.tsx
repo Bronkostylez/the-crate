@@ -138,7 +138,8 @@ function Roadmap() {
     { n: '02', title: 'Hörverlauf (Spotify Extended Streaming History)', state: 'dieser build', done: true },
     { n: '03', title: 'Playlist-Analyse', state: 'dieser build', done: true },
     { n: '04', title: 'The DNA — deine musikalische Identität', state: 'dieser build', done: true },
-    { n: '05', title: 'Recaps, PWA/Offline-Sync, Supabase-Cloud', state: 'später' },
+    { n: '05', title: 'Recaps + PWA', state: 'dieser build', done: true },
+    { n: '06', title: 'Supabase-Cloud-Sync', state: 'später' },
   ]
   return (
     <section className="crate-card p-5">

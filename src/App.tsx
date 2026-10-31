@@ -7,6 +7,7 @@ import { ImportPage } from './pages/ImportPage'
 import { HistoryPage } from './pages/HistoryPage'
 import { PlaylistPage } from './pages/PlaylistPage'
 import { DnaPage } from './pages/DnaPage'
+import { RecapPage } from './pages/RecapPage'
 import { SettingsPage } from './pages/SettingsPage'
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="history" element={<HistoryPage />} />
           <Route path="playlist" element={<PlaylistPage />} />
           <Route path="dna" element={<DnaPage />} />
+          <Route path="recaps" element={<RecapPage />} />
           <Route path="import" element={<ImportPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>

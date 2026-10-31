@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Library, History, ListMusic, Dna, Upload, Settings, Disc3 } from 'lucide-react'
+import { LayoutDashboard, Library, History, ListMusic, Dna, CalendarRange, Upload, Settings, Disc3 } from 'lucide-react'
 import { cx } from '../lib/utils'
 
 const NAV = [
@@ -8,6 +8,7 @@ const NAV = [
   { to: '/history', label: 'Hörverlauf', icon: History },
   { to: '/playlist', label: 'Die Playlist', icon: ListMusic },
   { to: '/dna', label: 'The DNA', icon: Dna },
+  { to: '/recaps', label: 'Recaps', icon: CalendarRange },
   { to: '/import', label: 'Import', icon: Upload },
   { to: '/settings', label: 'Einstellungen', icon: Settings },
 ]

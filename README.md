@@ -8,7 +8,7 @@ erfunden, um ein Chart zu füllen.
 
 Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 
-## Was heute geht (Etappen 1–4)
+## Was heute geht (Etappen 1–5)
 
 - **Das Archiv** — Album-Reviews mit Artwork, Bewertung (1–10), Review-Text,
   besten/schwächsten Tracks, Genres, Tags, Notizen. Raster- und Listenansicht,
@@ -43,6 +43,13 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   nach Produzenten oder Rap-Stilen bleiben gesperrt, bis die
   Metadaten-Etappe sie seriös beantworten kann. Korrelation, keine
   Kausalität, Stichproben immer sichtbar.
+- **Recaps** — monatliche und jährliche Auswertungen aus deinem echten
+  Hörverlauf: Hörzeit, Plays, aktive Tage, Top Artists/Tracks/Alben/Genres,
+  Entdeckungen (Artists mit ersten Plays im Zeitraum), Rekorde, Vergleich
+  zur Vorperiode — plus "Die Crate sagt": Kommentare mit Humor, aber jede
+  Zeile steht auf echten Zahlen. Jeder Recap exportierbar als PNG.
+- **PWA** — installierbar (Manifest + Service Worker), die App-Shell läuft
+  offline; deine Daten liegen ohnehin lokal in IndexedDB.
 - **Hörverlauf** — Import von Spotifys Extended Streaming History (die
   JSON-Dateien aus dem Datenexport, mehrere auf einmal). Podcasts und Videos
   werden übersprungen, Duplikate werden erkannt — auch beim erneuten Import
@@ -59,7 +66,7 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 - Läuft komplett offline — das Archiv liegt in IndexedDB, bis der
   Supabase-Sync in einer späteren Etappe kommt.
 
-Als Nächstes: monatliche und jährliche Recaps, PWA + Cloud-Sync.
+Als Nächstes: Supabase-Cloud-Sync und die Spotify-API-Anbindung.
 
 ## Lokal laufen lassen
 
