@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────
+   THE CRATE — design system
+   90s record-collection × NY underground mag
+   × vinyl archive × modern analytics
+   ───────────────────────────────────────────── */
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-ink-950 text-cream-100 font-sans antialiased;
+  /* subtle paper/vinyl-sleeve grain, generated inline so it works offline */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+::selection {
+  @apply bg-rust-500 text-ink-950;
+}
+
+/* slim, unobtrusive scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3b342a transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #3b342a;
+}
+
+@layer components {
+  /* editorial kicker label — small caps mono, the magazine voice */
+  .kicker {
+    @apply font-mono text-[11px] uppercase tracking-kicker text-cream-500;
+  }
+
+  /* card: near-square corners, hairline border, no heavy shadows */
+  .crate-card {
+    @apply rounded-sm border border-ink-700 bg-ink-850;
+  }
+
+  .crate-input {
+    @apply w-full rounded-sm border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-cream-100
+      placeholder:text-cream-600 focus:border-rust-500 focus:outline-none;
+  }
+
+  .crate-btn {
+    @apply inline-flex items-center gap-2 rounded-sm border border-ink-600 bg-ink-800 px-3 py-2
+      text-sm font-medium text-cream-300 transition-colors
+      hover:border-rust-500 hover:text-cream-100 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .crate-btn-primary {
+    @apply inline-flex items-center gap-2 rounded-sm border border-rust-600 bg-rust-500 px-3 py-2
+      text-sm font-semibold text-ink-950 transition-colors
+      hover:bg-rust-400 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .crate-chip {
+    @apply inline-flex items-center rounded-sm border border-ink-600 bg-ink-800 px-2 py-0.5
+      font-mono text-[11px] text-cream-300;
+  }
+
+  /* hairline rule with a label, like a magazine section divider */
+  .rule {
+    @apply flex items-center gap-3;
+  }
+  .rule::after {
+    content: '';
+    @apply h-px flex-1 bg-ink-700;
+  }
+}
