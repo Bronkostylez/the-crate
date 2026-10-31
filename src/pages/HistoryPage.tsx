@@ -17,11 +17,11 @@ const RANGES = [
 ] as const
 
 const tooltipStyle = {
-  backgroundColor: '#1D1A15',
-  border: '1px solid #3B342A',
+  backgroundColor: '#F7F0DE',
+  border: '2px solid #241C0E',
   borderRadius: 2,
   fontSize: 12,
-  color: '#EFE7D7',
+  color: '#211A0E',
 }
 
 export function HistoryPage() {
@@ -103,9 +103,9 @@ export function HistoryPage() {
         <div className="mt-4 h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={stats.minutesPerDay} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-              <XAxis dataKey="day" stroke="#7D7260" fontSize={10} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#2A251E' }} interval="preserveStartEnd" minTickGap={40} />
-              <YAxis stroke="#7D7260" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: '#2A251E55' }} formatter={(v) => [`${v} Min`, 'Hörzeit']} />
+              <XAxis dataKey="day" stroke="#827452" fontSize={10} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#D3C5A0' }} interval="preserveStartEnd" minTickGap={40} />
+              <YAxis stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(36,28,14,0.08)' }} formatter={(v) => [`${v} Min`, 'Hörzeit']} />
               <Bar dataKey="minutes" radius={[2, 2, 0, 0]}>
                 {stats.minutesPerDay.map((d) => (
                   <Cell key={d.day} fill="#C05B24" />

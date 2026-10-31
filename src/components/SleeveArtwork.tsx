@@ -35,7 +35,7 @@ function SleeveFallback({ artist, albumTitle, className }: { artist: string; alb
   return (
     <div className={cx('relative flex aspect-square w-full items-center justify-center overflow-hidden bg-ink-900', className)} title={`${albumTitle} von ${artist}`}>
       {/* vinyl grooves */}
-      <div className="absolute inset-0 opacity-40" style={{ background: 'repeating-radial-gradient(circle at 50% 50%, transparent 0 6px, #2A251E 6px 7px)' }} />
+      <div className="absolute inset-0 opacity-40" style={{ background: 'repeating-radial-gradient(circle at 50% 50%, transparent 0 6px, #D3C5A0 6px 7px)' }} />
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rust-500">
         <span className="font-display text-lg text-ink-950">{initials || '?'}</span>
       </div>

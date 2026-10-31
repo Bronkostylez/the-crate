@@ -10,11 +10,11 @@ import { EmptyState } from '../components/EmptyState'
 import { formatDate } from '../lib/utils'
 
 const tooltipStyle = {
-  backgroundColor: '#1D1A15',
-  border: '1px solid #3B342A',
+  backgroundColor: '#F7F0DE',
+  border: '2px solid #241C0E',
   borderRadius: 2,
   fontSize: 12,
-  color: '#EFE7D7',
+  color: '#211A0E',
 }
 
 export function OverviewPage() {
@@ -78,12 +78,12 @@ export function OverviewPage() {
           <div className="mt-4 h-52">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={distribution} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                <XAxis dataKey="rating" stroke="#7D7260" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#2A251E' }} />
-                <YAxis stroke="#7D7260" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: '#2A251E55' }} />
+                <XAxis dataKey="rating" stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#D3C5A0' }} />
+                <YAxis stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(36,28,14,0.08)' }} />
                 <Bar dataKey="count" radius={[2, 2, 0, 0]}>
                   {distribution.map((d) => (
-                    <Cell key={d.rating} fill={d.count > 0 ? '#C05B24' : '#2A251E'} />
+                    <Cell key={d.rating} fill={d.count > 0 ? '#9C4420' : '#DCCFB0'} />
                   ))}
                 </Bar>
               </BarChart>

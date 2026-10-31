@@ -140,7 +140,8 @@ export async function getAccessToken(clientId: string): Promise<string | null> {
     body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refresh, client_id: clientId }),
   })
   if (!res.ok) {
-    disconnectSpotify()
+    // only a definitive rejection kills the connection; a network blip must not
+    if (res.status === 400 || res.status === 401) disconnectSpotify()
     return null
   }
   storeTokens((await res.json()) as TokenResponse)

@@ -16,7 +16,9 @@ const NAV = [
 function navClass({ isActive }: { isActive: boolean }): string {
   return cx(
     'flex items-center gap-3 rounded-sm px-3 py-2 text-sm transition-colors',
-    isActive ? 'bg-ink-800 text-cream-100' : 'text-cream-500 hover:bg-ink-850 hover:text-cream-300',
+    isActive
+      ? 'border-2 border-[#241C0E] bg-[#241C0E] text-[#F7F0DE] shadow-[2px_2px_0_0_#9C4420]'
+      : 'border-2 border-transparent text-cream-500 hover:bg-ink-800 hover:text-cream-300',
   )
 }
 
@@ -24,13 +26,12 @@ export function Layout() {
   return (
     <div className="flex min-h-full flex-col md:flex-row">
       {/* desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-ink-700 bg-ink-900 p-4 md:flex">
-        <div className="mb-8 flex items-center gap-3 px-2 pt-2">
-          <Disc3 className="h-7 w-7 text-rust-400" strokeWidth={1.5} />
-          <div>
-            <p className="font-display text-base leading-none tracking-wide">THE CRATE</p>
-            <p className="kicker mt-1">privates archiv</p>
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r-2 border-[#241C0E] bg-ink-900 p-4 md:flex">
+        <div className="mb-8 px-2 pt-2">
+          <div className="w-fit -rotate-1 border-2 border-[#241C0E] bg-[#241C0E] px-3 py-2 shadow-[3px_3px_0_0_#9C4420]">
+            <p className="font-display text-lg leading-none tracking-wide text-[#F7F0DE]">THE CRATE</p>
           </div>
+          <p className="kicker mt-2.5 whitespace-nowrap">privates archiv · vol. 1</p>
         </div>
         <nav className="flex flex-col gap-1">
           {NAV.map(({ to, label, icon: Icon, end }) => (
@@ -50,8 +51,8 @@ export function Layout() {
       </aside>
 
       {/* mobile top bar */}
-      <div className="sticky top-0 z-20 flex w-full items-center gap-2 overflow-x-auto border-b border-ink-700 bg-ink-900/95 px-3 py-2 backdrop-blur md:hidden">
-        <Disc3 className="h-5 w-5 shrink-0 text-rust-400" />
+      <div className="sticky top-0 z-20 flex w-full items-center gap-2 overflow-x-auto border-b-2 border-[#241C0E] bg-ink-900/95 px-3 py-2 backdrop-blur md:hidden">
+        <Disc3 className="h-5 w-5 shrink-0 text-rust-500" />
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -60,7 +61,7 @@ export function Layout() {
             className={({ isActive }) =>
               cx(
                 'flex shrink-0 items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-xs',
-                isActive ? 'bg-ink-800 text-cream-100' : 'text-cream-500',
+                isActive ? 'bg-[#241C0E] text-[#F7F0DE]' : 'text-cream-500',
               )
             }
           >

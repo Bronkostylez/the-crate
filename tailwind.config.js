@@ -4,27 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
+        /* aged newsprint — 90s rap-magazine paper, lightest to darkest tan */
         ink: {
-          950: '#0B0A08',
-          900: '#12100D',
-          850: '#171411',
-          800: '#1D1A15',
-          700: '#2A251E',
-          600: '#3B342A',
-          500: '#4E4638',
+          950: '#E8DFC6',
+          900: '#EFE7D2',
+          850: '#F7F0DE',
+          800: '#E5DABE',
+          700: '#D3C5A0',
+          600: '#B7A67C',
+          500: '#94835C',
         },
+        /* print ink — warm near-black for text on paper */
         cream: {
-          100: '#EFE7D7',
-          300: '#D8CDB8',
-          500: '#A99C84',
-          600: '#7D7260',
+          100: '#211A0E',
+          300: '#3D3421',
+          500: '#675A3B',
+          600: '#827452',
         },
+        /* aged cover red — printed, slightly faded, never neon */
         rust: {
-          300: '#E08B4E',
-          400: '#D97A3D',
-          500: '#C05B24',
-          600: '#9A4A1E',
-          700: '#7A3A18',
+          300: '#C4703F',
+          400: '#B0542A',
+          500: '#9C4420',
+          600: '#80371A',
+          700: '#662C14',
         },
       },
       fontFamily: {

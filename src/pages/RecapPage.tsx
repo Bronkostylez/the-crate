@@ -27,7 +27,7 @@ export function RecapPage() {
     if (!cardRef.current || !recap) return
     setExporting(true)
     try {
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: '#0B0A08', scale: 2 })
+      const canvas = await html2canvas(cardRef.current, { backgroundColor: '#E8DFC6', scale: 2 })
       const a = document.createElement('a')
       a.href = canvas.toDataURL('image/png')
       a.download = `the-crate-recap-${recap.label.toLowerCase().replace(/\s+/g, '-')}.png`

@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Disc3, Loader2, Search } from 'lucide-react'
-import { activeMetadataLabel, getMetadataProvider, type AlbumSearchResult } from '../lib/metadata/provider'
+import { Link } from 'react-router-dom'
+import { activeMetadataLabel, getMetadataProvider, providerFallbackNote, type AlbumSearchResult } from '../lib/metadata/provider'
+import { getConfigValue } from '../lib/config'
+import { spotifyConnected } from '../lib/spotify/auth'
 
 /**
  * Album lookup for the review editor: debounced search, pick a result, the
@@ -12,6 +15,7 @@ export function AlbumSearch({ onPick, initialQuery }: { onPick: (album: AlbumSea
   const [searching, setSearching] = useState(false)
   const [loadingTracks, setLoadingTracks] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [note, setNote] = useState('')
   const [open, setOpen] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
   const seededRef = useRef(false)
@@ -36,6 +40,7 @@ export function AlbumSearch({ onPick, initialQuery }: { onPick: (album: AlbumSea
       try {
         const found = await getMetadataProvider().searchAlbums(query.trim())
         setResults(found)
+        setNote(providerFallbackNote())
         setOpen(true)
         if (found.length === 0) setError('Kein Album gefunden — Felder einfach per Hand ausfüllen.')
       } catch (err) {
@@ -109,7 +114,14 @@ export function AlbumSearch({ onPick, initialQuery }: { onPick: (album: AlbumSea
         </ul>
       )}
       {error && <p className="text-xs text-rust-300">{error}</p>}
+      {note && <p className="text-xs text-rust-300">{note}</p>}
       <p className="text-xs text-cream-600">Metadaten: {activeMetadataLabel()}.</p>
+      {getConfigValue('spotifyClientId') && !spotifyConnected() && (
+        <p className="text-xs text-rust-300">
+          Spotify ist eingetragen, aber nicht verbunden — Ergebnisse kommen von iTunes/MusicBrainz.{' '}
+          <Link to="/settings" className="underline hover:text-cream-100">Jetzt verbinden</Link>
+        </p>
+      )}
     </div>
   )
 }

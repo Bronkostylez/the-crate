@@ -10,11 +10,11 @@ import { formatRating } from '../lib/utils'
 import { formatDuration } from '../db/plays'
 
 const tooltipStyle = {
-  backgroundColor: '#1D1A15',
-  border: '1px solid #3B342A',
+  backgroundColor: '#F7F0DE',
+  border: '2px solid #241C0E',
   borderRadius: 2,
   fontSize: 12,
-  color: '#EFE7D7',
+  color: '#211A0E',
 }
 
 export function DnaPage() {
@@ -110,16 +110,16 @@ export function DnaPage() {
           <div className="mt-4 h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dna.eras} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                <XAxis dataKey="decade" stroke="#7D7260" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#2A251E' }} />
-                <YAxis stroke="#7D7260" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} />
+                <XAxis dataKey="decade" stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#D3C5A0' }} />
+                <YAxis stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  cursor={{ fill: '#2A251E55' }}
+                  cursor={{ fill: 'rgba(36,28,14,0.08)' }}
                   formatter={(v, name) => (name === 'count' ? [`${v} Reviews`, 'Anzahl'] : [`Ø ${formatRating(v as number)}`, 'Bewertung'])}
                 />
                 <Bar dataKey="count" radius={[2, 2, 0, 0]}>
                   {dna.eras.map((d) => (
-                    <Cell key={d.decade} fill={d.avgRating !== null && d.avgRating >= 8 ? '#C05B24' : '#4A4136'} />
+                    <Cell key={d.decade} fill={d.avgRating !== null && d.avgRating >= 8 ? '#9C4420' : '#C7B78F'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -204,11 +204,11 @@ export function DnaPage() {
           <div className="mt-4 h-44">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dna.monthly} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                <XAxis dataKey="month" stroke="#7D7260" fontSize={10} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#2A251E' }} minTickGap={30} />
-                <YAxis stroke="#7D7260" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} />
+                <XAxis dataKey="month" stroke="#827452" fontSize={10} fontFamily="IBM Plex Mono" tickLine={false} axisLine={{ stroke: '#D3C5A0' }} minTickGap={30} />
+                <YAxis stroke="#827452" fontSize={11} fontFamily="IBM Plex Mono" tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  cursor={{ fill: '#2A251E55' }}
+                  cursor={{ fill: 'rgba(36,28,14,0.08)' }}
                   formatter={(v) => [`${v} Min`, 'Hörzeit']}
                   labelFormatter={(m) => {
                     const p = dna.monthly.find((x) => x.month === m)

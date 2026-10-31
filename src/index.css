@@ -4,12 +4,13 @@
 
 /* ─────────────────────────────────────────────
    THE CRATE — design system
-   90s record-collection × NY underground mag
-   × vinyl archive × modern analytics
+   Vintage 90s/00s rap magazine × comic panels:
+   aged newsprint, halftone dots, hard ink borders,
+   offset print shadows. Texture yes, clutter no.
    ───────────────────────────────────────────── */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html,
@@ -20,8 +21,11 @@ body,
 
 body {
   @apply bg-ink-950 text-cream-100 font-sans antialiased;
-  /* subtle paper/vinyl-sleeve grain, generated inline so it works offline */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  /* halftone dots + paper grain, both generated inline so they work offline */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
+    radial-gradient(circle, rgba(33, 26, 14, 0.06) 1px, transparent 1.4px);
+  background-size: auto, 9px 9px;
 }
 
 ::selection {
@@ -31,14 +35,14 @@ body {
 /* slim, unobtrusive scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #3b342a transparent;
+  scrollbar-color: #b7a67c transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #3b342a;
+  background: #b7a67c;
 }
 
 @layer components {
@@ -47,30 +51,48 @@ body {
     @apply font-mono text-[11px] uppercase tracking-kicker text-cream-500;
   }
 
-  /* card: near-square corners, hairline border, no heavy shadows */
+  /* comic panel: paper card, hard ink border, offset print shadow */
   .crate-card {
-    @apply rounded-sm border border-ink-700 bg-ink-850;
+    @apply rounded-[3px] border-2 border-[#241C0E] bg-ink-850;
+    box-shadow: 3px 3px 0 0 #241c0e;
   }
 
   .crate-input {
-    @apply w-full rounded-sm border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-cream-100
+    @apply w-full rounded-[3px] border-2 border-[#241C0E] bg-[#FCF7EA] px-3 py-2 text-sm text-cream-100
       placeholder:text-cream-600 focus:border-rust-500 focus:outline-none;
   }
 
+  /* buttons press like a stamp: lift on hover, sink on click */
   .crate-btn {
-    @apply inline-flex items-center gap-2 rounded-sm border border-ink-600 bg-ink-800 px-3 py-2
-      text-sm font-medium text-cream-300 transition-colors
-      hover:border-rust-500 hover:text-cream-100 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex items-center gap-2 rounded-[3px] border-2 border-[#241C0E] bg-ink-850 px-3 py-2
+      text-sm font-medium text-cream-300 transition-all
+      hover:-translate-y-px hover:text-cream-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0;
+    box-shadow: 2px 2px 0 0 #241c0e;
+  }
+  .crate-btn:hover:not(:disabled) {
+    box-shadow: 3px 3px 0 0 #241c0e;
+  }
+  .crate-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 1px 1px 0 0 #241c0e;
   }
 
   .crate-btn-primary {
-    @apply inline-flex items-center gap-2 rounded-sm border border-rust-600 bg-rust-500 px-3 py-2
-      text-sm font-semibold text-ink-950 transition-colors
-      hover:bg-rust-400 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex items-center gap-2 rounded-[3px] border-2 border-[#241C0E] bg-rust-500 px-3 py-2
+      text-sm font-semibold text-ink-950 transition-all
+      hover:-translate-y-px hover:bg-rust-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0;
+    box-shadow: 2px 2px 0 0 #241c0e;
+  }
+  .crate-btn-primary:hover:not(:disabled) {
+    box-shadow: 3px 3px 0 0 #241c0e;
+  }
+  .crate-btn-primary:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 1px 1px 0 0 #241c0e;
   }
 
   .crate-chip {
-    @apply inline-flex items-center rounded-sm border border-ink-600 bg-ink-800 px-2 py-0.5
+    @apply inline-flex items-center rounded-[3px] border border-[#241C0E] bg-ink-800 px-2 py-0.5
       font-mono text-[11px] text-cream-300;
   }
 
@@ -80,6 +102,7 @@ body {
   }
   .rule::after {
     content: '';
-    @apply h-px flex-1 bg-ink-700;
+    @apply h-px flex-1;
+    background: rgba(36, 28, 14, 0.3);
   }
 }

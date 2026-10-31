@@ -2,7 +2,9 @@
 
 Tylers privates Hip-Hop-Archiv. Teil Plattensammlung, Teil Review-Archiv,
 Teil Hör-Statistik — gebaut um den Geschmack einer einzigen Person, nicht um
-Klickzahlen. Dunkler, editorialer Vinyl-Look, und jede Zahl auf dem
+Klickzahlen. Der Look ist eine Hommage an die Hip-Hop-Magazine der 90er
+und 00er: gealtertes Zeitungspapier, Halbton-Raster, harte Tintenrahmen —
+aufgeräumt trotz Charakter, auch auf dem Handy. Und jede Zahl auf dem
 Bildschirm kommt aus einer echten, importierten Datenzeile. Nichts wird
 erfunden, um ein Chart zu füllen.
 
@@ -21,11 +23,16 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   deine bisherigen Freitext-Picks werden dabei auf die echten Tracknamen
   gemappt (nur bei eindeutigem Treffer, sonst bleiben sie erhalten).
   Deine Handarbeit bleibt: Bewertung, Review-Text, Picks, Genres.
-  Quelle ist Spotify, sobald du deinen Account verbunden hast (Login über
-  PKCE, kein Client-Secret nötig), sonst die iTunes/Apple-Music-API —
-  die eine springt für die andere ein, wenn sie ausfällt oder ein Album
-  nicht kennt (iTunes fehlt z. B. Yeezus). Bleibt ein Album unauffindbar,
-  ist die Trackliste ehrlich Freitext.
+  Quellen in Kaskade: Spotify, sobald du deinen Account verbunden hast
+  (Login über PKCE, kein Client-Secret nötig), dann die
+  iTunes/Apple-Music-API, dann MusicBrainz (die offene, Community-gepflegte
+  Musik-Enzyklopädie — keylos und stark genau da, wo die kommerziellen
+  Kataloge Lücken haben: 90er-Hip-Hop, Mixtapes). Schwache Treffer
+  (Tribute-Alben, gleichnamige EPs von Fremdkünstlern) werden erkannt und
+  durch die echten Alben von MusicBrainz ergänzt — iTunes fehlen z. B.
+  Yeezus und The Chronic komplett. Ein Hinweis unter dem Suchfeld sagt dir
+  immer, welche Quelle geliefert hat. Bleibt ein Album unauffindbar, ist
+  die Trackliste ehrlich Freitext.
 - **Import** — JSON- oder CSV-Template, Validierung pro Zeile,
   Duplikat-Erkennung, Vorschau bevor irgendwas geschrieben wird, Strategie
   Überspringen-oder-Überschreiben. Bestehende Reviews werden wortgleich
