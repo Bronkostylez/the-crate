@@ -14,6 +14,12 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   besten/schwächsten Tracks, Genres, Tags, Notizen. Raster- und Listenansicht,
   Volltextsuche, Genre- und Bewertungsfilter, sieben Sortierungen.
   Anlegen, bearbeiten, löschen.
+- **Album-Suche mit Autofill** — beim Anlegen einmal das Album suchen und
+  antippen: Artist, Titel, Jahr, Genre und Cover füllen sich von selbst,
+  beste/schwächste Tracks wählst du aus der echten Trackliste des Albums.
+  Deine Handarbeit bleibt: Bewertung, Review-Text, Picks. Quelle ist die
+  iTunes/Apple-Music-API (ohne Zugangsdaten, grober Genre-Feed); ein
+  Spotify-Provider kann später übernehmen, ohne die UI anzufassen.
 - **Import** — JSON- oder CSV-Template, Validierung pro Zeile,
   Duplikat-Erkennung, Vorschau bevor irgendwas geschrieben wird, Strategie
   Überspringen-oder-Überschreiben. Bestehende Reviews werden wortgleich

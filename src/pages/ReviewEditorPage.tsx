@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Trash2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, X } from 'lucide-react'
 import { createReview, deleteReview, getReview, updateReview } from '../db/reviews'
 import { RatingBadge } from '../components/RatingBadge'
 import { SleeveArtwork } from '../components/SleeveArtwork'
+import { AlbumSearch } from '../components/AlbumSearch'
 import { emptyDraft } from '../types'
-import { formatDate, splitList } from '../lib/utils'
+import { cx, formatDate, splitList } from '../lib/utils'
+import type { AlbumSearchResult } from '../lib/metadata/provider'
 import type { ReviewDraft } from '../types'
 
 /** Create + edit + read one review. /archive/new starts blank, /archive/:id loads. */
@@ -19,6 +21,8 @@ export function ReviewEditorPage() {
   const [tagsText, setTagsText] = useState('')
   const [bestText, setBestText] = useState('')
   const [worstText, setWorstText] = useState('')
+  const [albumTracks, setAlbumTracks] = useState<string[]>([])
+  const [metaSource, setMetaSource] = useState('')
   const [saving, setSaving] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [missing, setMissing] = useState(false)
@@ -31,9 +35,10 @@ export function ReviewEditorPage() {
       setTagsText('')
       setBestText('')
       setWorstText('')
+      setAlbumTracks([])
       return
     }
-    getReview(id).then((r) => {
+    getReview(id!).then((r) => {
       if (!r) {
         setMissing(true)
         return
@@ -60,6 +65,36 @@ export function ReviewEditorPage() {
   const set = <K extends keyof ReviewDraft>(key: K, value: ReviewDraft[K]) => setDraft({ ...draft, [key]: value })
   const canSave = draft.artist.trim() !== '' && draft.albumTitle.trim() !== ''
 
+  function onAlbumPicked(album: AlbumSearchResult, tracks: string[]) {
+    if (!draft) return
+    setDraft({
+      ...draft,
+      artist: album.artist,
+      albumTitle: album.title,
+      releaseYear: album.releaseYear,
+      artworkUrl: album.artworkUrl,
+    })
+    if (album.genre && !genresText.toLowerCase().includes(album.genre.toLowerCase())) {
+      setGenresText(genresText ? `${genresText}; ${album.genre}` : album.genre)
+    }
+    setAlbumTracks(tracks)
+    setMetaSource(album.source)
+    // keep already-picked tracks that still exist on the picked album
+    setDraft((d) => d)
+  }
+
+  function toggleTrack(list: 'bestTracks' | 'worstTracks', name: string) {
+    if (!draft) return
+    const current = draft[list]
+    set(list, current.includes(name) ? current.filter((t) => t !== name) : [...current, name])
+  }
+
+  function clearTracklist() {
+    setBestText(draft!.bestTracks.join('; '))
+    setWorstText(draft!.worstTracks.join('; '))
+    setAlbumTracks([])
+  }
+
   async function save() {
     if (!draft || !canSave) return
     setSaving(true)
@@ -67,8 +102,8 @@ export function ReviewEditorPage() {
       ...draft,
       genres: splitList(genresText),
       tags: splitList(tagsText),
-      bestTracks: splitList(bestText),
-      worstTracks: splitList(worstText),
+      bestTracks: albumTracks.length ? draft.bestTracks : splitList(bestText),
+      worstTracks: albumTracks.length ? draft.worstTracks : splitList(worstText),
     }
     if (isNew) {
       const created = await createReview(finalDraft)
@@ -122,11 +157,14 @@ export function ReviewEditorPage() {
         </div>
       )}
 
+      <AlbumSearch onPick={onAlbumPicked} />
+
       <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
         <div className="space-y-3">
           <div className="crate-card overflow-hidden">
             <SleeveArtwork artist={draft.artist || '?'} albumTitle={draft.albumTitle || 'Ohne Titel'} artworkUrl={draft.artworkUrl} />
           </div>
+          {metaSource && <p className="font-mono text-[10px] uppercase tracking-wider text-cream-600">Metadaten: {metaSource}</p>}
           <label className="block space-y-1">
             <span className="kicker">Artwork-URL</span>
             <input className="crate-input font-mono text-xs" placeholder="https://…" value={draft.artworkUrl ?? ''} onChange={(e) => set('artworkUrl', e.target.value || null)} />
@@ -183,15 +221,31 @@ export function ReviewEditorPage() {
             />
           </label>
 
+          {albumTracks.length > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="kicker">Trackliste des Albums ({albumTracks.length})</p>
+                <button type="button" className="inline-flex items-center gap-1 text-xs text-cream-600 hover:text-cream-300" onClick={clearTracklist}>
+                  <X className="h-3 w-3" /> Freitext statt Liste
+                </button>
+              </div>
+              <TrackPicker label="Beste Tracks" tracks={albumTracks} selected={draft.bestTracks} onToggle={(t) => toggleTrack('bestTracks', t)} accent />
+              <TrackPicker label="Schwächste Tracks" tracks={albumTracks} selected={draft.worstTracks} onToggle={(t) => toggleTrack('worstTracks', t)} />
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block space-y-1">
+                <span className="kicker">Beste Tracks <span className="normal-case tracking-normal text-cream-600">(mit ; trennen)</span></span>
+                <input className="crate-input" value={bestText} onChange={(e) => setBestText(e.target.value)} placeholder="The World Is Yours; Memory Lane" />
+              </label>
+              <label className="block space-y-1">
+                <span className="kicker">Schwächste Tracks <span className="normal-case tracking-normal text-cream-600">(mit ; trennen)</span></span>
+                <input className="crate-input" value={worstText} onChange={(e) => setWorstText(e.target.value)} />
+              </label>
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block space-y-1">
-              <span className="kicker">Beste Tracks <span className="normal-case tracking-normal text-cream-600">(mit ; trennen)</span></span>
-              <input className="crate-input" value={bestText} onChange={(e) => setBestText(e.target.value)} placeholder="The World Is Yours; Memory Lane" />
-            </label>
-            <label className="block space-y-1">
-              <span className="kicker">Schwächste Tracks <span className="normal-case tracking-normal text-cream-600">(mit ; trennen)</span></span>
-              <input className="crate-input" value={worstText} onChange={(e) => setWorstText(e.target.value)} />
-            </label>
             <label className="block space-y-1">
               <span className="kicker">Genres <span className="normal-case tracking-normal text-cream-600">(mit ; trennen)</span></span>
               <input className="crate-input" value={genresText} onChange={(e) => setGenresText(e.target.value)} placeholder="East Coast Hip-Hop; Jazz Rap" />
@@ -215,6 +269,36 @@ export function ReviewEditorPage() {
             {!canSave && <p className="text-xs text-cream-600">Artist und Albumtitel sind Pflicht.</p>}
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function TrackPicker({ label, tracks, selected, onToggle, accent }: { label: string; tracks: string[]; selected: string[]; onToggle: (t: string) => void; accent?: boolean }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="kicker">{label}{selected.length > 0 ? ` (${selected.length})` : ''}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {tracks.map((t) => {
+          const active = selected.includes(t)
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => onToggle(t)}
+              className={cx(
+                'rounded-sm border px-2 py-1 text-xs transition-colors',
+                active
+                  ? accent
+                    ? 'border-rust-500 bg-rust-500 text-ink-950'
+                    : 'border-cream-500 bg-cream-300 text-ink-950'
+                  : 'border-ink-600 text-cream-500 hover:border-rust-600 hover:text-cream-100',
+              )}
+            >
+              {t}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
