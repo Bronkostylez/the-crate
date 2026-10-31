@@ -17,6 +17,7 @@ import {
 import { StatCard } from '../components/StatCard'
 import { EmptyState } from '../components/EmptyState'
 import { downloadFile, formatDate } from '../lib/utils'
+import { getPlaylistLink } from '../lib/playlistLink'
 import { formatDuration } from '../db/plays'
 import type { PlaylistSnapshot, PlaylistTrack, SnapshotDiff } from '../types'
 
@@ -66,9 +67,14 @@ export function PlaylistPage() {
           title="Noch keine Playlist importiert"
           body="Importiere deine Playlist aus Spotifys Datenexport (Playlist-JSON in den Kontodaten) oder als CSV. Der Name kommt aus deiner Datei — hier wird nichts hart verdrahtet. Daraus entstehen Verteilungen, Kollaborationen, Fundstücke und eine durchsuchbare Tabelle."
           action={
-            <Link to="/import" className="crate-btn-primary">
-              Zum Import <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link to="/import" className="crate-btn-primary">
+                Zum Import <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a href={getPlaylistLink()} target="_blank" rel="noreferrer" className="crate-btn-ghost">
+                Deine Playlist auf Spotify <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
           }
         />
       </div>
@@ -86,11 +92,9 @@ export function PlaylistPage() {
           </p>
           <p className="mt-0.5 text-xs text-cream-600">Playlist-Platzierung ist kein Hören — Zahlen hier beschreiben die Zusammenstellung, nicht dein Hörverhalten.</p>
         </div>
-        {latest!.spotifyUrl && (
-          <a href={latest!.spotifyUrl} target="_blank" rel="noreferrer" className="crate-btn-ghost">
-            Auf Spotify öffnen <ExternalLink className="h-4 w-4" />
-          </a>
-        )}
+        <a href={latest!.spotifyUrl ?? getPlaylistLink()} target="_blank" rel="noreferrer" className="crate-btn-ghost">
+          Auf Spotify öffnen <ExternalLink className="h-4 w-4" />
+        </a>
       </header>
 
       {stats && (

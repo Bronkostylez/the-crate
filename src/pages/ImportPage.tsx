@@ -8,6 +8,7 @@ import { formatDate } from '../lib/utils'
 import type { PlayImportPreview } from '../types'
 import { parseCsv, reviewsToCsv, reviewsToJson, runImport, validateImport, type ImportResult } from '../db/reviews'
 import { buildPlaylistPreview, importPlaylistSnapshot, parsePlaylistFile } from '../db/playlists'
+import { getPlaylistLink, sanitizeSpotifyUrl, setPlaylistLink } from '../lib/playlistLink'
 import type { PlaylistCandidate, PlaylistImportPreview } from '../types'
 import { TEMPLATE_CSV, TEMPLATE_JSON } from '../db/template'
 import { EmptyState } from '../components/EmptyState'
@@ -394,7 +395,7 @@ function PlaylistImport() {
   const [candidates, setCandidates] = useState<PlaylistCandidate[]>([])
   const [preview, setPreview] = useState<PlaylistImportPreview | null>(null)
   const [name, setName] = useState('')
-  const [spotifyUrl, setSpotifyUrl] = useState('')
+  const [spotifyUrl, setSpotifyUrl] = useState(() => getPlaylistLink())
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [doneId, setDoneId] = useState<string | null>(null)
@@ -429,11 +430,17 @@ function PlaylistImport() {
   async function confirm() {
     if (!preview) return
     setBusy(true)
-    const id = await importPlaylistSnapshot(preview, name, spotifyUrl || null)
+    const cleanUrl = spotifyUrl.trim() ? sanitizeSpotifyUrl(spotifyUrl) : null
+    if (spotifyUrl.trim() && !cleanUrl) {
+      setError('Das sieht nicht nach einem Spotify-Link aus — Format: https://open.spotify.com/playlist/…')
+      setBusy(false)
+      return
+    }
+    if (cleanUrl) setPlaylistLink(cleanUrl)
+    const id = await importPlaylistSnapshot(preview, name, cleanUrl)
     setBusy(false)
     setPreview(null)
     setCandidates([])
-    setSpotifyUrl('')
     setDoneId(id)
   }
 
