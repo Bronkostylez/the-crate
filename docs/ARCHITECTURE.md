@@ -56,6 +56,6 @@ GitHub Actions (`.github/workflows/deploy.yml`): `npm ci` → build with
 1. ✅ Scaffold, design system, review archive (grid/list/CRUD/search/filter/sort),
    import pipeline with validation + preview, SQL schema, deploy workflow.
 2. Listening history: Spotify Extended Streaming History import + analytics.
-3. Playlist analytics ("N.W.A Best Of").
+3. Playlist analytics (name comes from the imported playlist, never hardcoded).
 4. The DNA: musical identity engine (preferences vs. actual data).
 5. Recaps (monthly/yearly), PWA service worker, Supabase cloud sync.

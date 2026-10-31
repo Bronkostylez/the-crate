@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { Play, Review } from '../types'
+import type { Play, PlaylistSnapshot, PlaylistTrack, Review } from '../types'
 
 /**
  * Local-first storage (IndexedDB via Dexie).
@@ -11,6 +11,8 @@ import type { Play, Review } from '../types'
 export class CrateDB extends Dexie {
   reviews!: Table<Review, string>
   plays!: Table<Play, string>
+  playlistSnapshots!: Table<PlaylistSnapshot, string>
+  playlistTracks!: Table<PlaylistTrack, string>
 
   constructor() {
     super('the-crate')
@@ -21,6 +23,13 @@ export class CrateDB extends Dexie {
     this.version(2).stores({
       reviews: 'id, artist, rating, releaseYear, reviewDate, updatedAt, *genres, *tags',
       plays: 'id, playedAt, artistName, trackName, [playedAt+trackName+artistName]',
+    })
+    // v3 adds playlist snapshots (THE PLAYLIST section)
+    this.version(3).stores({
+      reviews: 'id, artist, rating, releaseYear, reviewDate, updatedAt, *genres, *tags',
+      plays: 'id, playedAt, artistName, trackName, [playedAt+trackName+artistName]',
+      playlistSnapshots: 'id, importedAt, name',
+      playlistTracks: 'id, snapshotId, trackName, artistName',
     })
   }
 }

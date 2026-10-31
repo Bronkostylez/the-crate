@@ -93,3 +93,50 @@ export interface ParsedPlay {
   playedAt: string
   msPlayed: number
 }
+
+/** One full-state snapshot of a playlist import (THE PLAYLIST section). */
+export interface PlaylistSnapshot {
+  id: string
+  name: string
+  importedAt: string
+  source: 'spotify_account_export' | 'exportify_csv' | 'csv_template'
+  fileName: string
+  trackCount: number
+}
+
+export interface PlaylistTrack {
+  id: string
+  snapshotId: string
+  position: number
+  trackName: string
+  /** as written in the export; may contain several artists */
+  artistName: string
+  albumName: string | null
+  addedAt: string | null
+  durationMs: number | null
+  releaseDate: string | null
+  spotifyUri: string | null
+}
+
+export type ParsedPlaylistTrack = Omit<PlaylistTrack, 'id' | 'snapshotId'>
+
+/** One playlist found inside an import file (a file can hold several). */
+export interface PlaylistCandidate {
+  name: string
+  tracks: ParsedPlaylistTrack[]
+  skipped: number
+}
+
+export interface PlaylistImportPreview {
+  fileName: string
+  source: PlaylistSnapshot['source']
+  candidate: PlaylistCandidate
+  duplicateRows: number
+  /** vs the newest existing snapshot, null on the first import */
+  diff: { added: number; removed: number } | null
+}
+
+export interface SnapshotDiff {
+  added: PlaylistTrack[]
+  removed: PlaylistTrack[]
+}
