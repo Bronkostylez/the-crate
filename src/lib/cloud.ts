@@ -14,7 +14,8 @@ import { db } from '../db/local'
 import { importPlays } from '../db/plays'
 import type { ParsedPlay, Play, Review } from '../types'
 import { getConfigValue } from './config'
-import { readPendingDeletes, removePendingDelete, setReviewWatermark } from './syncQueue'
+import { planReviewReconcile, nextWatermark } from './reviewReconcile'
+import { getReviewWatermark, readPendingDeletes, removePendingDelete, setReviewWatermark } from './syncQueue'
 import { getSupabase } from './supabase'
 
 /** export and API timestamp the same play slightly differently — window dedupe */
@@ -195,7 +196,66 @@ function fromCloudReview(r: CloudReviewRow, tags: string[]): Review {
   }
 }
 
+
+const REVIEW_COLUMNS =
+  'id, artist, album_title, release_year, genres, rating, review_text, best_tracks, worst_tracks, review_date, notes, metadata_provider_id, metadata_source, artwork_url, updated_at'
+
+/** fetch full remote rows + their tags for the ids the reconcile plan wants applied */
+async function fetchRemoteReviews(ids: string[]): Promise<{
+  rows: CloudReviewRow[]
+  tagsByReview: Map<string, string[]>
+}> {
+  const supabase = getSupabase()
+  if (!supabase || ids.length === 0) return { rows: [], tagsByReview: new Map() }
+  const { data, error } = await supabase.from('reviews').select(REVIEW_COLUMNS).in('id', ids)
+  if (error) throw new Error(`Review-Download fehlgeschlagen: ${error.message}`)
+  const { data: tags, error: tagError } = await supabase.from('review_tags').select('review_id, tag').in('review_id', ids)
+  if (tagError) throw new Error(`Tag-Download fehlgeschlagen: ${tagError.message}`)
+  const tagsByReview = new Map<string, string[]>()
+  for (const t of tags ?? []) tagsByReview.set(t.review_id, [...(tagsByReview.get(t.review_id) ?? []), t.tag])
+  return { rows: (data ?? []) as CloudReviewRow[], tagsByReview }
+}
+
 // ── the sync ─────────────────────────────────────────────────────────────
+
+/**
+ * Light pull for the auto-sync: apply remote rows that are newer than clean
+ * local state (out-of-app changes, other devices) without pushing anything.
+ * Locally dirty rows always win and are left to pushDirtyReviews.
+ * Returns the applied server timestamps so the caller can cover them in the
+ * watermark AFTER the dirty push has run.
+ */
+export interface PulledReviews {
+  applied: number
+  appliedIds: string[]
+  appliedTs: string[]
+}
+
+export async function pullNewerReviews(): Promise<PulledReviews> {
+  const none: PulledReviews = { applied: 0, appliedIds: [], appliedTs: [] }
+  const supabase = getSupabase()
+  const user = await cloudSession()
+  if (!supabase || !user) return none
+
+  const localReviews = await db.reviews.toArray()
+  const { data: remoteMeta, error } = await supabase.from('reviews').select('id, updated_at')
+  if (error) throw new Error(`Review-Download fehlgeschlagen: ${error.message}`)
+  const plan = planReviewReconcile(localReviews, remoteMeta ?? [], getReviewWatermark(), UPDATED_AT_TOLERANCE_MS)
+  // rows queued for cloud deletion must not be resurrected by the pull
+  const pendingDeletes = new Set(readPendingDeletes())
+  const applyIds = plan.applyIds.filter((id) => !pendingDeletes.has(id))
+  if (applyIds.length === 0) return none
+
+  const { rows, tagsByReview } = await fetchRemoteReviews(applyIds)
+  const appliedIds: string[] = []
+  const appliedTs: string[] = []
+  for (const row of rows) {
+    await db.reviews.put(fromCloudReview(row, tagsByReview.get(row.id) ?? []))
+    appliedIds.push(row.id)
+    appliedTs.push(row.updated_at)
+  }
+  return { applied: rows.length, appliedIds, appliedTs }
+}
 
 export interface CloudSyncResult {
   playsPushed: number
@@ -243,9 +303,31 @@ export async function syncCloud(): Promise<CloudSyncResult> {
     const { error } = await supabase.from('reviews').delete().eq('id', id)
     if (!error) removePendingDelete(id)
   }
+  // reviews reconcile: pull newer remote rows FIRST so out-of-app changes
+  // (other device, support edits) arrive here; locally dirty rows win every
+  // conflict and are the only ones pushed — clean local state never
+  // overwrites newer remote state.
   const localReviews = await db.reviews.toArray()
+  const { data: remoteMeta, error: metaError } = await supabase.from('reviews').select('id, updated_at')
+  if (metaError) throw new Error(`Review-Download fehlgeschlagen: ${metaError.message}`)
+  const plan = planReviewReconcile(localReviews, remoteMeta ?? [], getReviewWatermark(), UPDATED_AT_TOLERANCE_MS)
+
+  let reviewsPulled = 0
+  const appliedTs: string[] = []
+  if (plan.applyIds.length > 0) {
+    const { rows, tagsByReview } = await fetchRemoteReviews(plan.applyIds)
+    for (const row of rows) {
+      await db.reviews.put(fromCloudReview(row, tagsByReview.get(row.id) ?? []))
+      appliedTs.push(row.updated_at)
+      reviewsPulled++
+    }
+  }
+
+  const localById = new Map(localReviews.map((r) => [r.id, r]))
   let reviewsPushed = 0
-  for (const r of localReviews) {
+  for (const id of plan.pushIds) {
+    const r = localById.get(id)
+    if (!r) continue
     const { error } = await supabase.from('reviews').upsert(toCloudReview(user.id, r))
     if (error) throw new Error(`Review-Upload fehlgeschlagen: ${error.message}`)
     await supabase.from('review_tags').delete().eq('review_id', r.id)
@@ -254,34 +336,9 @@ export async function syncCloud(): Promise<CloudSyncResult> {
     }
     reviewsPushed++
   }
-  // every local review was just pushed — the auto-sync watermark can jump here
-  setReviewWatermark(Date.now())
-
-  const { data: remoteReviews, error: reviewPullError } = await supabase
-    .from('reviews')
-    .select('id, artist, album_title, release_year, genres, rating, review_text, best_tracks, worst_tracks, review_date, notes, metadata_provider_id, metadata_source, artwork_url, updated_at')
-  if (reviewPullError) throw new Error(`Review-Download fehlgeschlagen: ${reviewPullError.message}`)
-  const remoteIds = ((remoteReviews ?? []) as CloudReviewRow[]).map((r) => r.id)
-  const { data: remoteTags } = remoteIds.length
-    ? await supabase.from('review_tags').select('review_id, tag').in('review_id', remoteIds)
-    : { data: [] as Array<{ review_id: string; tag: string }> }
-  const tagsByReview = new Map<string, string[]>()
-  for (const t of remoteTags ?? []) tagsByReview.set(t.review_id, [...(tagsByReview.get(t.review_id) ?? []), t.tag])
-
-  const pushedIds = new Set(localReviews.map((r) => r.id))
-  const localById = new Map(localReviews.map((r) => [r.id, r]))
-  let reviewsPulled = 0
-  for (const row of (remoteReviews ?? []) as CloudReviewRow[]) {
-    const local = localById.get(row.id)
-    const remoteNewer =
-      !local ||
-      new Date(row.updated_at).getTime() - new Date(local.updatedAt).getTime() > UPDATED_AT_TOLERANCE_MS
-    // rows we just pushed carry our own content; only the trigger-bumped
-    // timestamp looks "newer" — skip them
-    if (!remoteNewer || (local && pushedIds.has(row.id))) continue
-    await db.reviews.put(fromCloudReview(row, tagsByReview.get(row.id) ?? []))
-    reviewsPulled++
-  }
+  // covers pushed rows AND rows just applied from remote (their updatedAt is
+  // the server timestamp — without covering it they would look dirty forever)
+  setReviewWatermark(nextWatermark(getReviewWatermark(), appliedTs))
 
   // the hourly tracker needs the current refresh token on every sync
   await pushSpotifyConnection()

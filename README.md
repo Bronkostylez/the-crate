@@ -103,7 +103,11 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   alles zusätzlich in deiner eigenen Datenbank (Row Level Security, nur du
   liest deine Zeilen): Reviews fliegen beim Speichern, Importieren und
   Löschen von selbst in die Cloud (Auto-Sync, offline geht nichts verloren
-  — es wird nachgeholt), „Jetzt synchronisieren" spiegelt bei Bedarf
+  — es wird nachgeholt) — und umgekehrt kommen Änderungen von woanders
+  (anderes Gerät, Korrekturen direkt in der Datenbank) bei jedem App-Start
+  bei dir an. Bei Konflikten gewinnt immer die Seite mit der neueren,
+  noch nicht synchronisierten Änderung; gepusht wird nur, was sich lokal
+  wirklich geändert hat. „Jetzt synchronisieren" spiegelt bei Bedarf
   komplett in beide Richtungen, und ein stündlicher Server-Job holt deine
   neuesten Spotify-Plays ab — auch bei geschlossener App. Exakte Hörzeiten
   aus einem Extended-Export ersetzen dabei weiterhin die ca.-Schätzungen.

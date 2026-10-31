@@ -1,5 +1,7 @@
 /**
- * Auto-sync — local changes fly to the cloud without the button.
+ * Auto-sync — local changes fly to the cloud without the button, and
+ * out-of-app cloud changes (other device, corrections) fly back: every
+ * review job pulls newer remote rows before pushing dirty local ones.
  *
  * Triggers live next to the writes: saving or importing a review schedules
  * a debounced dirty push, deleting one queues the id for a cloud delete,
@@ -12,7 +14,7 @@
  * successful push, so a failed run simply retries on the next trigger.
  */
 import { db } from '../db/local'
-import { cloudSession, syncCloud, toCloudReview } from './cloud'
+import { cloudSession, pullNewerReviews, syncCloud, toCloudReview } from './cloud'
 import { getSupabase } from './supabase'
 import {
   addPendingDelete,
@@ -27,8 +29,6 @@ import {
 
 const REVIEW_DEBOUNCE_MS = 1_500
 const FULL_DEBOUNCE_MS = 3_000
-/** mirrors the tolerance in cloud.ts so the push/pull roundtrip does not echo */
-const WATERMARK_TOLERANCE_MS = 2_000
 
 type Job = 'reviews' | 'full'
 
@@ -101,7 +101,16 @@ async function run(): Promise<void> {
           await syncCloud()
           setPendingFullSync(false)
         } else {
-          await pushDirtyReviews()
+          // pull first so out-of-app changes (other device, corrections)
+          // arrive on every app start; locally dirty rows win every
+          // conflict. The rows just applied carry the server timestamp and
+          // would look dirty to the push — exclude them, then cover their
+          // timestamps in the watermark AFTER the push ran (covering them
+          // before could mask a genuinely dirty row under clock drift).
+          const pulled = await pullNewerReviews()
+          await pushDirtyReviews(new Set(pulled.appliedIds))
+          const maxApplied = pulled.appliedTs.reduce((m, ts) => Math.max(m, new Date(ts).getTime()), 0)
+          if (maxApplied > 0) setReviewWatermark(Math.max(getReviewWatermark(), maxApplied))
         }
         emit({ ok: true, at: new Date().toISOString(), job })
       } catch (e) {
@@ -123,11 +132,12 @@ function emit(event: AutoSyncEvent): void {
 
 /**
  * Push every locally deleted review id, then every review whose local
- * updatedAt is newer than the watermark. The watermark is a LOCAL clock
- * value — the server bumps its own updated_at per trigger, so comparing
- * against that would drift.
+ * updatedAt is strictly newer than the watermark (i.e. changed after the
+ * last successful sync). A fuzzy "watermark minus slack" comparison would
+ * mark freshly synced rows dirty and echo-push them — and their stale
+ * content would clobber newer remote corrections.
  */
-export async function pushDirtyReviews(): Promise<void> {
+export async function pushDirtyReviews(excludeIds?: Set<string>): Promise<void> {
   const supabase = getSupabase()
   if (!supabase) return
   const user = await cloudSession()
@@ -142,7 +152,7 @@ export async function pushDirtyReviews(): Promise<void> {
 
   const watermark = getReviewWatermark()
   const dirty = (await db.reviews.toArray())
-    .filter((r) => new Date(r.updatedAt).getTime() > watermark - WATERMARK_TOLERANCE_MS)
+    .filter((r) => !excludeIds?.has(r.id) && new Date(r.updatedAt).getTime() > watermark)
     .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
 
   let maxPushed = watermark
