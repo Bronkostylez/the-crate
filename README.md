@@ -8,7 +8,7 @@ erfunden, um ein Chart zu füllen.
 
 Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 
-## Was heute geht (Etappen 1–3)
+## Was heute geht (Etappen 1–4)
 
 - **Das Archiv** — Album-Reviews mit Artwork, Bewertung (1–10), Review-Text,
   besten/schwächsten Tracks, Genres, Tags, Notizen. Raster- und Listenansicht,
@@ -34,6 +34,15 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   ist ein Schnappschuss: neuere Importe zeigen, was dazukam oder verschwand.
   Schnappschüsse lassen sich umbenennen, exportieren (JSON/CSV) und löschen.
   Playlist-Platzierung wird strikt vom Hörverlauf getrennt.
+- **The DNA** — deine musikalische Identität, gerechnet nur aus deinen
+  echten Daten: Genre-Profil (aus deinen Reviews, mit Ø-Bewertung), Hörzeit
+  pro Genre, Äras-Chart, Szenen aus deinen eigenen Genre-Tags (inkl.
+  East-Coast-/West-Coast-Sicht), Entwicklung pro Monat und die ehrlichen
+  Widersprüche: viel gehört aber nicht bewertet, hoch bewertet aber kaum
+  gehört. "Fragen an deine DNA" beantwortet, was die Daten hergeben — Fragen
+  nach Produzenten oder Rap-Stilen bleiben gesperrt, bis die
+  Metadaten-Etappe sie seriös beantworten kann. Korrelation, keine
+  Kausalität, Stichproben immer sichtbar.
 - **Hörverlauf** — Import von Spotifys Extended Streaming History (die
   JSON-Dateien aus dem Datenexport, mehrere auf einmal). Podcasts und Videos
   werden übersprungen, Duplikate werden erkannt — auch beim erneuten Import
@@ -50,8 +59,7 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 - Läuft komplett offline — das Archiv liegt in IndexedDB, bis der
   Supabase-Sync in einer späteren Etappe kommt.
 
-Als Nächstes: die musikalische Identität („The DNA"), monatliche und
-jährliche Recaps, PWA + Cloud-Sync.
+Als Nächstes: monatliche und jährliche Recaps, PWA + Cloud-Sync.
 
 ## Lokal laufen lassen
 

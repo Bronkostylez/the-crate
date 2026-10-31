@@ -137,7 +137,7 @@ function Roadmap() {
     { n: '01', title: 'Archiv + Importe', state: 'dieser build', done: true },
     { n: '02', title: 'Hörverlauf (Spotify Extended Streaming History)', state: 'dieser build', done: true },
     { n: '03', title: 'Playlist-Analyse', state: 'dieser build', done: true },
-    { n: '04', title: 'The DNA — deine musikalische Identität', state: 'später' },
+    { n: '04', title: 'The DNA — deine musikalische Identität', state: 'dieser build', done: true },
     { n: '05', title: 'Recaps, PWA/Offline-Sync, Supabase-Cloud', state: 'später' },
   ]
   return (
