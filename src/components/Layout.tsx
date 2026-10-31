@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Library, History, ListMusic, Dna, CalendarRange, Upload, Settings, Ellipsis, Tags } from 'lucide-react'
+import { LayoutDashboard, Library, History, ListMusic, Dna, CalendarRange, Upload, Settings, Ellipsis, Tags, Trophy } from 'lucide-react'
 import { cx } from '../lib/utils'
 import { HeadphonesDoodle, SquiggleDoodle, StarDoodle, VinylDoodle } from './Doodles'
 
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/playlist', label: 'Die Playlist', icon: ListMusic },
   { to: '/dna', label: 'The DNA', icon: Dna },
   { to: '/recaps', label: 'Recaps', icon: CalendarRange },
+  { to: '/milestones', label: 'Meilensteine', icon: Trophy },
   { to: '/import', label: 'Import', icon: Upload },
   { to: '/settings', label: 'Einstellungen', icon: Settings },
 ]
@@ -27,6 +28,7 @@ const MORE = [
   { to: '/tags', label: 'Genre-Runde', icon: Tags },
   { to: '/playlist', label: 'Die Playlist', icon: ListMusic },
   { to: '/recaps', label: 'Recaps', icon: CalendarRange },
+  { to: '/milestones', label: 'Meilensteine', icon: Trophy },
   { to: '/import', label: 'Import', icon: Upload },
   { to: '/settings', label: 'Einstellungen', icon: Settings },
 ]

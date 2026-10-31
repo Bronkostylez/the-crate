@@ -55,6 +55,13 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   gehört dir — nichts wird automatisch befüllt. Optional übernimmst du die
   Genres eines Albums für alle Alben desselben Artists (vorhandene bleiben
   erhalten). Alles, was du setzt, fließt direkt in The DNA.
+- **Meilensteine** — die Trophäen-Vitrine: geknackte Ziele (z. B. "25
+  Reviews im Archiv") mit dem echten Tag, an dem sie gefallen sind, plus
+  "Als Nächstes im Visier" mit Fortschrittsbalken — der 100. Play von
+  Illmatic inklusive. Gerechnet aus Album-, Artist-, Track- und
+  Gesamt-Plays, Review- und 10er-Zahlen und Hörzeit (ca.-Schätzungen sind
+  markiert). Neue Meilensteine seit deinem letzten Besuch tragen ein
+  NEU-Tape.
 - **The DNA** — deine musikalische Identität, gerechnet nur aus deinen
   echten Daten: Genre-Profil (aus deinen Reviews, mit Ø-Bewertung), Hörzeit
   pro Genre, Äras-Chart, Szenen aus deinen eigenen Genre-Tags (inkl.
