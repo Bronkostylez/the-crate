@@ -261,12 +261,13 @@ export function DnaPage() {
               caveat="Halbiert nach Anzahl der Plays, nicht nach Kalender. Richtige Zeitreisen kommen mit mehr Daten."
             />
           )}
-          <LockedCard question="Bevorzuge ich DJ-Premier-Produktionen?" />
-          <LockedCard question="Welche Produzenten dominieren meine Favoriten?" />
-          <LockedCard question="Welche Rap-Stile und Album-Konzepte bewerte ich höher?" />
+          <LockedCard question="Bevorzuge ich DJ-Premier-Produktionen?" reason="Braucht Credits-Daten — die Spotify-API liefert sie leider nicht. Eine Credits-Quelle (z. B. Genius) könnte das später öffnen." />
+          <LockedCard question="Welche Produzenten dominieren meine Favoriten?" reason="Braucht Credits-Daten — die Spotify-API liefert sie leider nicht. Eine Credits-Quelle (z. B. Genius) könnte das später öffnen." />
+          <LockedCard question="Welche Rap-Stile und Album-Konzepte bewerte ich höher?" reason="Braucht deine eigenen Tags — pflege Stile und Konzepte als Tags in deinen Reviews, dann rechnet The DNA damit." />
         </div>
         <p className="text-xs text-cream-600">
-          Gesperrte Fragen brauchen Producer-, Credits- und Feature-Metadaten — die kommen mit der Spotify-API-Etappe. Geraten wird hier nicht.
+          Gesperrt bleibt, was die Daten nicht hergeben: Producer-Credits liefert auch die Spotify-API nicht,
+          Stil-/Konzept-Fragen brauchen deine Tags. Geraten wird hier nicht.
         </p>
       </section>
     </div>
@@ -283,13 +284,13 @@ function AnswerCard({ question, answer, caveat }: { question: string; answer: st
   )
 }
 
-function LockedCard({ question }: { question: string }) {
+function LockedCard({ question, reason }: { question: string; reason: string }) {
   return (
     <div className="crate-card p-4 opacity-60">
       <p className="flex items-center gap-2 text-sm font-medium text-cream-300">
         <Lock className="h-3.5 w-3.5 text-cream-600" /> {question}
       </p>
-      <p className="mt-1 text-xs text-cream-600">Wartet auf die Metadaten-Etappe.</p>
+      <p className="mt-1 text-xs text-cream-600">{reason}</p>
     </div>
   )
 }

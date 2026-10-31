@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { CheckCircle2, CircleDashed, Trash2 } from 'lucide-react'
+import { CheckCircle2, CircleDashed, Music2, Trash2 } from 'lucide-react'
 import { db } from '../db/local'
 import { clearAllReviews } from '../db/reviews'
-import { getConfig, isValidHttpUrl, setConfigValue } from '../lib/config'
+import { getConfig, getConfigValue, isValidHttpUrl, setConfigValue } from '../lib/config'
 import { resetSupabaseClient } from '../lib/supabase'
+import { disconnectSpotify, spotifyConnected, spotifyDisplayName, startSpotifyAuth, takeSpotifyError } from '../lib/spotify/auth'
 
 export function SettingsPage() {
   const reviews = useLiveQuery(() => db.reviews.toArray(), [])
   const [fields, setFields] = useState(getConfig())
   const [saved, setSaved] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [spotifyError] = useState(takeSpotifyError)
+  const [connected, setConnected] = useState(spotifyConnected)
 
   function update(key: string, value: string) {
     setSaved(false)
@@ -69,6 +72,41 @@ export function SettingsPage() {
           <button className="crate-btn-primary" onClick={save} disabled={urlInvalid}>Speichern</button>
           {saved && <p className="text-sm text-rust-300">In diesem Browser gespeichert.</p>}
         </div>
+      </section>
+
+      <section className="crate-card space-y-3 p-5">
+        <p className="kicker rule">Spotify</p>
+        {spotifyError && <p className="text-sm text-rust-300">{spotifyError}</p>}
+        {connected ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="flex items-center gap-2 text-sm text-cream-100">
+              <CheckCircle2 className="h-4 w-4 text-rust-400" />
+              Verbunden{spotifyDisplayName() ? ` als ${spotifyDisplayName()}` : ''} — Album-Suche und Tracklisten laufen jetzt über Spotify.
+            </p>
+            <button
+              className="crate-btn text-cream-500 hover:border-rust-600 hover:text-rust-300"
+              onClick={() => {
+                disconnectSpotify()
+                setConnected(false)
+              }}
+            >
+              Trennen
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-cream-500">
+              {getConfigValue('spotifyClientId')
+                ? 'Client ID ist gespeichert. Ein Klick, Spotify-Login, fertig — danach kommen Album-Suche und Tracklisten von Spotify (findet auch Alben, die iTunes nicht kennt).'
+                : 'Trag oben deine Spotify Client ID ein und speichere — dann erscheint hier der Verbinden-Knopf.'}
+            </p>
+            {getConfigValue('spotifyClientId') && (
+              <button className="crate-btn-primary" onClick={() => void startSpotifyAuth(getConfigValue('spotifyClientId'))}>
+                <Music2 className="h-4 w-4" /> Mit Spotify verbinden
+              </button>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="crate-card space-y-3 p-5">

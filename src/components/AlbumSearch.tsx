@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Disc3, Loader2, Search } from 'lucide-react'
-import { getMetadataProvider, type AlbumSearchResult } from '../lib/metadata/provider'
+import { activeMetadataLabel, getMetadataProvider, type AlbumSearchResult } from '../lib/metadata/provider'
 
 /**
  * Album lookup for the review editor: debounced search, pick a result, the
@@ -109,7 +109,7 @@ export function AlbumSearch({ onPick, initialQuery }: { onPick: (album: AlbumSea
         </ul>
       )}
       {error && <p className="text-xs text-rust-300">{error}</p>}
-      <p className="text-xs text-cream-600">Metadaten: Apple Music / iTunes. Spotify übernimmt später, sobald deine Client-ID drin ist.</p>
+      <p className="text-xs text-cream-600">Metadaten: {activeMetadataLabel()}.</p>
     </div>
   )
 }

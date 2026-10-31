@@ -21,10 +21,11 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   deine bisherigen Freitext-Picks werden dabei auf die echten Tracknamen
   gemappt (nur bei eindeutigem Treffer, sonst bleiben sie erhalten).
   Deine Handarbeit bleibt: Bewertung, Review-Text, Picks, Genres.
-  Quelle ist die iTunes/Apple-Music-API (ohne Zugangsdaten); ein
-  Spotify-Provider kann später übernehmen, ohne die UI anzufassen.
-  Bekannte iTunes-Lücke: manche Alben fehlen im Katalog (z. B. Yeezus) —
-  dann bleibt die Trackliste einfach Freitext.
+  Quelle ist Spotify, sobald du deinen Account verbunden hast (Login über
+  PKCE, kein Client-Secret nötig), sonst die iTunes/Apple-Music-API —
+  die eine springt für die andere ein, wenn sie ausfällt oder ein Album
+  nicht kennt (iTunes fehlt z. B. Yeezus). Bleibt ein Album unauffindbar,
+  ist die Trackliste ehrlich Freitext.
 - **Import** — JSON- oder CSV-Template, Validierung pro Zeile,
   Duplikat-Erkennung, Vorschau bevor irgendwas geschrieben wird, Strategie
   Überspringen-oder-Überschreiben. Bestehende Reviews werden wortgleich
@@ -71,7 +72,7 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
 - Läuft komplett offline — das Archiv liegt in IndexedDB, bis der
   Supabase-Sync in einer späteren Etappe kommt.
 
-Als Nächstes: Supabase-Cloud-Sync und die Spotify-API-Anbindung.
+Als Nächstes: Supabase-Cloud-Sync (Backup + Sync zwischen Geräten).
 
 ## Lokal laufen lassen
 
