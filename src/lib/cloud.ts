@@ -14,6 +14,7 @@ import { db } from '../db/local'
 import { importPlays } from '../db/plays'
 import type { ParsedPlay, Play, Review } from '../types'
 import { getConfigValue } from './config'
+import { readPendingDeletes, removePendingDelete, setReviewWatermark } from './syncQueue'
 import { getSupabase } from './supabase'
 
 /** export and API timestamp the same play slightly differently — window dedupe */
@@ -152,7 +153,7 @@ interface CloudReviewRow {
   updated_at: string
 }
 
-function toCloudReview(userId: string, r: Review): Omit<CloudReviewRow, 'updated_at'> & { user_id: string } {
+export function toCloudReview(userId: string, r: Review): Omit<CloudReviewRow, 'updated_at'> & { user_id: string } {
   return {
     user_id: userId,
     id: r.id,
@@ -235,7 +236,13 @@ export async function syncCloud(): Promise<CloudSyncResult> {
   }
   for (const [source, plays] of bySource) await importPlays(plays, source)
 
-  // reviews: push local state, then pull rows the cloud has newer
+  // reviews: replay queued deletions first (auto-sync keeps this queue
+  // for offline deletes), then push local state, then pull newer rows
+  for (const id of [...readPendingDeletes()]) {
+    await supabase.from('review_tags').delete().eq('review_id', id)
+    const { error } = await supabase.from('reviews').delete().eq('id', id)
+    if (!error) removePendingDelete(id)
+  }
   const localReviews = await db.reviews.toArray()
   let reviewsPushed = 0
   for (const r of localReviews) {
@@ -247,6 +254,8 @@ export async function syncCloud(): Promise<CloudSyncResult> {
     }
     reviewsPushed++
   }
+  // every local review was just pushed — the auto-sync watermark can jump here
+  setReviewWatermark(Date.now())
 
   const { data: remoteReviews, error: reviewPullError } = await supabase
     .from('reviews')

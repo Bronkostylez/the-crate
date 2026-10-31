@@ -87,10 +87,16 @@ Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)
   existieren.
 - **Einstellungen** — Supabase-/Spotify-Zugangsdaten bequem in der App
   eintragen; nichts wird in den Build gebacken, kein Secret berührt das Repo.
-- Läuft komplett offline — das Archiv liegt in IndexedDB, bis der
-  Supabase-Sync (Cloud-Backup + 24/7-Tracking) in einer späteren Etappe kommt.
-
-Als Nächstes: Supabase-Cloud-Sync (Backup + Sync zwischen Geräten).
+- **Cloud-Sync + 24/7-Tracking** — mit verbundenem Supabase-Konto liegt
+  alles zusätzlich in deiner eigenen Datenbank (Row Level Security, nur du
+  liest deine Zeilen): Reviews fliegen beim Speichern, Importieren und
+  Löschen von selbst in die Cloud (Auto-Sync, offline geht nichts verloren
+  — es wird nachgeholt), „Jetzt synchronisieren" spiegelt bei Bedarf
+  komplett in beide Richtungen, und ein stündlicher Server-Job holt deine
+  neuesten Spotify-Plays ab — auch bei geschlossener App. Exakte Hörzeiten
+  aus einem Extended-Export ersetzen dabei weiterhin die ca.-Schätzungen.
+- Läuft komplett offline — das Archiv liegt in IndexedDB; die Cloud ist ein
+  Spiegel, keine Voraussetzung.
 
 ## Lokal laufen lassen
 
@@ -121,7 +127,7 @@ Schema mit allen Tabellen, Dedupe-Indexes und RLS-Policies liegt in
 `supabase/migrations/0001_init.sql`. Architektur und Sicherheitsmodell:
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-Das lokale Review-Schema spiegelt das SQL-Schema Feld für Feld — der spätere
+Das lokale Review-Schema spiegelt das SQL-Schema Feld für Feld — der
 Cloud-Sync ist damit eine Kopie, keine Migration.
 
 ## Grundregeln, die im Code stecken

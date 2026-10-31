@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { CheckCircle2, Download, FileUp, History, ListMusic, TriangleAlert, Upload } from 'lucide-react'
 import { db } from '../db/local'
 import { buildPlayPreview, formatDuration, importPlays } from '../db/plays'
+import { scheduleFullSync } from '../lib/autosync'
 import { formatDate } from '../lib/utils'
 import type { PlayImportPreview } from '../types'
 import { parseCsv, reviewsToCsv, reviewsToJson, runImport, validateImport, type ImportResult } from '../db/reviews'
@@ -310,6 +311,7 @@ function StreamingImport() {
     if (!preview) return
     setBusy(true)
     const n = await importPlays(preview.validPlays, 'spotify_extended')
+    if (n > 0) scheduleFullSync()
     setBusy(false)
     setPreview(null)
     setDoneCount(n)

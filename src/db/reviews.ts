@@ -1,5 +1,6 @@
 import { db } from './local'
 import { normalizeKey } from '../lib/utils'
+import { noteReviewDeleted, scheduleReviewSync } from '../lib/autosync'
 import type { Review, ReviewDraft, DuplicateStrategy, ValidatedImportRow, ImportIssue } from '../types'
 
 function now(): string {
@@ -9,15 +10,18 @@ function now(): string {
 export async function createReview(draft: ReviewDraft): Promise<Review> {
   const review: Review = { ...draft, id: crypto.randomUUID(), createdAt: now(), updatedAt: now() }
   await db.reviews.add(review)
+  scheduleReviewSync()
   return review
 }
 
 export async function updateReview(id: string, draft: ReviewDraft): Promise<void> {
   await db.reviews.update(id, { ...draft, updatedAt: now() })
+  scheduleReviewSync()
 }
 
 export async function deleteReview(id: string): Promise<void> {
   await db.reviews.delete(id)
+  noteReviewDeleted(id)
 }
 
 export async function getReview(id: string): Promise<Review | undefined> {
@@ -132,6 +136,8 @@ export async function runImport(rows: ValidatedImportRow[], strategy: DuplicateS
       result.imported++
     }
   })
+  // imported/updated rows carry a fresh updatedAt — the dirty push covers them
+  if (result.imported + result.updated > 0) scheduleReviewSync()
   return result
 }
 

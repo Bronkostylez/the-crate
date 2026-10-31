@@ -13,6 +13,7 @@ import App from './App.tsx'
 import { getConfigValue } from './lib/config'
 import { completeSpotifyAuth, setSpotifyError } from './lib/spotify/auth'
 import { pushSpotifyConnection } from './lib/cloud'
+import { initAutoSync } from './lib/autosync'
 
 /**
  * Spotify OAuth redirect lands on the app root with ?code&state (or ?error).
@@ -39,6 +40,8 @@ async function handleSpotifyCallback(): Promise<boolean> {
   window.location.replace(`${import.meta.env.BASE_URL}settings`)
   return true
 }
+
+initAutoSync()
 
 handleSpotifyCallback().then((handled) => {
   if (handled) return

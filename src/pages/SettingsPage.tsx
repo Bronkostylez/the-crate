@@ -7,6 +7,7 @@ import { getConfig, getConfigValue, isValidHttpUrl, setConfigValue } from '../li
 import { resetSupabaseClient } from '../lib/supabase'
 import { disconnectSpotify, spotifyConnected, spotifyDisplayName, startSpotifyAuth, takeSpotifyError } from '../lib/spotify/auth'
 import { cloudSession, signInCloud, signOutCloud, syncCloud, type CloudSyncResult, type CloudUser } from '../lib/cloud'
+import { scheduleFullSync, type AutoSyncEvent } from '../lib/autosync'
 
 export function SettingsPage() {
   const reviews = useLiveQuery(() => db.reviews.toArray(), [])
@@ -22,8 +23,13 @@ export function SettingsPage() {
   const [cloudError, setCloudError] = useState('')
   const [cloudResult, setCloudResult] = useState<CloudSyncResult | null>(null)
 
+  const [autoSync, setAutoSync] = useState<AutoSyncEvent | null>(null)
+
   useEffect(() => {
     void cloudSession().then(setCloudUser)
+    const onAuto = (e: Event) => setAutoSync((e as CustomEvent<AutoSyncEvent>).detail)
+    window.addEventListener('crate:autosync', onAuto)
+    return () => window.removeEventListener('crate:autosync', onAuto)
   }, [])
 
   async function cloudSignIn() {
@@ -32,6 +38,7 @@ export function SettingsPage() {
     try {
       setCloudUser(await signInCloud(cloudEmail, cloudPassword))
       setCloudPassword('')
+      scheduleFullSync()
     } catch (e) {
       setCloudError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -163,6 +170,26 @@ export function SettingsPage() {
               ein anderes Gerät) inzwischen gesammelt hat. Sobald Spotify UND die Cloud verbunden sind, bekommt der
               Tracker automatisch dein aktuelles Login — ab dann läuft die Erfassung rund um die Uhr, auch wenn die
               App zu ist.
+            </p>
+            <p className="text-sm text-cream-500">
+              <span className="text-cream-100">Auto-Sync ist an:</span> Reviews fliegen beim Speichern, Importieren
+              und Löschen von selbst in die Cloud — der Knopf unten bleibt für den kompletten Abgleich in beide
+              Richtungen.
+              {autoSync?.ok && (
+                <>
+                  {' '}
+                  Zuletzt automatisch gesichert:{' '}
+                  {new Date(autoSync.at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}{' '}
+                  Uhr.
+                </>
+              )}
+              {autoSync && !autoSync.ok && (
+                <span className="text-rust-300">
+                  {' '}
+                  Auto-Sync gerade fehlgeschlagen ({autoSync.error}) — nichts geht verloren, der nächste Speicher-
+                  oder Sync-Versuch holt es nach.
+                </span>
+              )}
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <button className="crate-btn-primary" disabled={cloudBusy} onClick={() => void cloudSync()}>

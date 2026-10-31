@@ -30,10 +30,11 @@ Passwort-Manager (Vault-Einträge „Supabase the-crate database" und
    anmelden.
 3. Deine **Spotify Client ID** eintragen (siehe Abschnitt „Spotify") und
    einmal mit Spotify verbinden.
-4. Einmal **Jetzt synchronisieren**. Ab dann läuft alles von allein: Die
-   App übergibt dein Spotify-Login an deine eigene `spotify_connection`-
-   Tabelle (nur du kannst sie lesen), und der Stunden-Job holt deine Plays
-   ab — auch bei geschlossener App.
+4. Fertig — der erste Sync startet nach dem Login von selbst. Ab dann läuft
+   alles automatisch: Reviews sichern sich bei jedem Speichern sofort in der
+   Cloud (Auto-Sync), die App übergibt dein Spotify-Login an deine eigene
+   `spotify_connection`-Tabelle (nur du kannst sie lesen), und der
+   Stunden-Job holt deine Plays ab — auch bei geschlossener App.
 
 > Project URL und anon-Key sind *bewusst veröffentlichbar*. Deine Daten
 > schützen dein Login und die Row Level Security, nicht das Verstecken
