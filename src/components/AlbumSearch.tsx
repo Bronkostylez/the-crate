@@ -6,14 +6,23 @@ import { getMetadataProvider, type AlbumSearchResult } from '../lib/metadata/pro
  * Album lookup for the review editor: debounced search, pick a result, the
  * editor fills artist/title/year/genre/artwork and loads the tracklist.
  */
-export function AlbumSearch({ onPick }: { onPick: (album: AlbumSearchResult, tracks: string[]) => void }) {
-  const [query, setQuery] = useState('')
+export function AlbumSearch({ onPick, initialQuery }: { onPick: (album: AlbumSearchResult, tracks: string[]) => void; initialQuery?: string }) {
+  const [query, setQuery] = useState(initialQuery ?? '')
   const [results, setResults] = useState<AlbumSearchResult[]>([])
   const [searching, setSearching] = useState(false)
   const [loadingTracks, setLoadingTracks] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [open, setOpen] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
+  const seededRef = useRef(false)
+
+  // reseed when the editor loads a different review
+  useEffect(() => {
+    if (!seededRef.current && initialQuery) {
+      seededRef.current = true
+      setQuery(initialQuery)
+    }
+  }, [initialQuery])
 
   useEffect(() => {
     if (query.trim().length < 3) {

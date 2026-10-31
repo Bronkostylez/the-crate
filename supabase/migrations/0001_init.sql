@@ -219,6 +219,9 @@ create table if not exists public.reviews (
   worst_tracks  text[] not null default '{}',
   review_date   date,
   notes         text not null default '',
+  -- metadata provider link so the editor can reload the real tracklist
+  metadata_provider_id text,
+  metadata_source text,
   artwork_url   text,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()

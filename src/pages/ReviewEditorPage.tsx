@@ -7,10 +7,28 @@ import { SleeveArtwork } from '../components/SleeveArtwork'
 import { AlbumSearch } from '../components/AlbumSearch'
 import { emptyDraft } from '../types'
 import { cx, formatDate, splitList } from '../lib/utils'
-import type { AlbumSearchResult } from '../lib/metadata/provider'
+import { getMetadataProvider, type AlbumSearchResult } from '../lib/metadata/provider'
 import type { ReviewDraft } from '../types'
 
 /** Create + edit + read one review. /archive/new starts blank, /archive/:id loads. */
+
+/** Base name without "(feat. …)" / "(Radio Edit)" etc. for fuzzy pick mapping. */
+function trackBase(name: string): string {
+  return name.replace(/\s*\(.*$/, '').trim().toLowerCase()
+}
+
+/**
+ * Map imported freetext picks onto the provider tracklist: a pick that
+ * matches exactly one track's base name becomes that canonical track.
+ * Ambiguous picks stay untouched (rendered as dashed extras).
+ */
+function mapPicksToTracklist(picks: string[], tracks: string[]): string[] {
+  return picks.map((pick) => {
+    if (tracks.includes(pick)) return pick
+    const candidates = tracks.filter((t) => trackBase(t) === trackBase(pick))
+    return candidates.length === 1 ? candidates[0] : pick
+  })
+}
 export function ReviewEditorPage() {
   const { id } = useParams()
   const isNew = !id
@@ -22,6 +40,8 @@ export function ReviewEditorPage() {
   const [bestText, setBestText] = useState('')
   const [worstText, setWorstText] = useState('')
   const [albumTracks, setAlbumTracks] = useState<string[]>([])
+  const [loadingTracks, setLoadingTracks] = useState(false)
+  const [seedQuery, setSeedQuery] = useState('')
   const [metaSource, setMetaSource] = useState('')
   const [saving, setSaving] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -36,6 +56,8 @@ export function ReviewEditorPage() {
       setBestText('')
       setWorstText('')
       setAlbumTracks([])
+      setSeedQuery('')
+      setMetaSource('')
       return
     }
     getReview(id!).then((r) => {
@@ -49,6 +71,26 @@ export function ReviewEditorPage() {
       setTagsText(r.tags.join('; '))
       setBestText(r.bestTracks.join('; '))
       setWorstText(r.worstTracks.join('; '))
+      setMetaSource(r.metadataSource ?? '')
+      if (r.artist.trim() && r.albumTitle.trim()) {
+        setSeedQuery(`${r.artist} ${r.albumTitle}`)
+      }
+      // a review that was matched once reloads its real tracklist on every edit
+      if (r.metadataProviderId) {
+        setLoadingTracks(true)
+        getMetadataProvider()
+          .getTracklist(r.metadataProviderId)
+          .then((tracks) => {
+            setAlbumTracks(tracks)
+            setDraft((d) =>
+              d
+                ? { ...d, bestTracks: mapPicksToTracklist(d.bestTracks, tracks), worstTracks: mapPicksToTracklist(d.worstTracks, tracks) }
+                : d,
+            )
+          })
+          .catch(() => setAlbumTracks([]))
+          .finally(() => setLoadingTracks(false))
+      }
     })
   }, [id, isNew])
 
@@ -62,31 +104,41 @@ export function ReviewEditorPage() {
   }
   if (!draft) return null
 
-  const set = <K extends keyof ReviewDraft>(key: K, value: ReviewDraft[K]) => setDraft({ ...draft, [key]: value })
+  // functional update: a batched click right after a chip pick must not stomp it
+  const set = <K extends keyof ReviewDraft>(key: K, value: ReviewDraft[K]) =>
+    setDraft((d) => (d ? { ...d, [key]: value } : d))
   const canSave = draft.artist.trim() !== '' && draft.albumTitle.trim() !== ''
 
   function onAlbumPicked(album: AlbumSearchResult, tracks: string[]) {
     if (!draft) return
-    setDraft({
-      ...draft,
-      artist: album.artist,
-      albumTitle: album.title,
-      releaseYear: album.releaseYear,
-      artworkUrl: album.artworkUrl,
-    })
-    if (album.genre && !genresText.toLowerCase().includes(album.genre.toLowerCase())) {
-      setGenresText(genresText ? `${genresText}; ${album.genre}` : album.genre)
-    }
+    setDraft((d) =>
+      d
+        ? {
+            ...d,
+            artist: album.artist,
+            albumTitle: album.title,
+            releaseYear: album.releaseYear,
+            artworkUrl: album.artworkUrl,
+            metadataProviderId: album.providerId,
+            metadataSource: album.source,
+          }
+        : d,
+    )
     setAlbumTracks(tracks)
     setMetaSource(album.source)
-    // keep already-picked tracks that still exist on the picked album
-    setDraft((d) => d)
+    // fold freetext picks (e.g. from imports) into the real tracklist where unambiguous
+    setDraft((d) =>
+      d
+        ? { ...d, bestTracks: mapPicksToTracklist(d.bestTracks, tracks), worstTracks: mapPicksToTracklist(d.worstTracks, tracks) }
+        : d,
+    )
   }
 
   function toggleTrack(list: 'bestTracks' | 'worstTracks', name: string) {
-    if (!draft) return
-    const current = draft[list]
-    set(list, current.includes(name) ? current.filter((t) => t !== name) : [...current, name])
+    // functional update: rapid chip clicks must not lose each other's picks
+    setDraft((d) =>
+      d ? { ...d, [list]: d[list].includes(name) ? d[list].filter((t) => t !== name) : [...d[list], name] } : d,
+    )
   }
 
   function clearTracklist() {
@@ -157,7 +209,7 @@ export function ReviewEditorPage() {
         </div>
       )}
 
-      <AlbumSearch onPick={onAlbumPicked} />
+      <AlbumSearch onPick={onAlbumPicked} initialQuery={seedQuery} />
 
       <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
         <div className="space-y-3">
@@ -221,7 +273,11 @@ export function ReviewEditorPage() {
             />
           </label>
 
-          {albumTracks.length > 0 ? (
+          {loadingTracks ? (
+            <p className="flex items-center gap-2 text-sm text-cream-500">
+              <Loader2 className="h-4 w-4 animate-spin" /> Trackliste wird geladen…
+            </p>
+          ) : albumTracks.length > 0 ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="kicker">Trackliste des Albums ({albumTracks.length})</p>
@@ -275,17 +331,21 @@ export function ReviewEditorPage() {
 }
 
 function TrackPicker({ label, tracks, selected, onToggle, accent }: { label: string; tracks: string[]; selected: string[]; onToggle: (t: string) => void; accent?: boolean }) {
+  // own picks that are not on the provider tracklist (imports, bonus editions) stay visible and removable
+  const extras = selected.filter((t) => !tracks.includes(t))
   return (
     <div className="space-y-1.5">
       <p className="kicker">{label}{selected.length > 0 ? ` (${selected.length})` : ''}</p>
       <div className="flex flex-wrap gap-1.5">
-        {tracks.map((t) => {
+        {[...tracks, ...extras].map((t) => {
+          const isExtra = extras.includes(t)
           const active = selected.includes(t)
           return (
             <button
               key={t}
               type="button"
               onClick={() => onToggle(t)}
+              title={isExtra ? 'Dein Eintrag — nicht in der gefundenen Trackliste, bleibt erhalten' : undefined}
               className={cx(
                 'rounded-sm border px-2 py-1 text-xs transition-colors',
                 active
@@ -293,6 +353,7 @@ function TrackPicker({ label, tracks, selected, onToggle, accent }: { label: str
                     ? 'border-rust-500 bg-rust-500 text-ink-950'
                     : 'border-cream-500 bg-cream-300 text-ink-950'
                   : 'border-ink-600 text-cream-500 hover:border-rust-600 hover:text-cream-100',
+                isExtra && 'border-dashed',
               )}
             >
               {t}

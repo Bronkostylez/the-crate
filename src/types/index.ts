@@ -15,6 +15,10 @@ export interface Review {
   tags: string[]
   notes: string
   artworkUrl: string | null
+  /** metadata provider album id (iTunes collectionId) once picked via search — lets the editor reload the real tracklist on every edit */
+  metadataProviderId: string | null
+  /** display name of the provider that supplied the metadata */
+  metadataSource: string | null
   createdAt: string
   updatedAt: string
 }
@@ -35,6 +39,8 @@ export function emptyDraft(): ReviewDraft {
     tags: [],
     notes: '',
     artworkUrl: null,
+    metadataProviderId: null,
+    metadataSource: null,
   }
 }
 

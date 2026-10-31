@@ -83,6 +83,8 @@ export function validateRow(rowNumber: number, raw: Record<string, unknown>): { 
     tags: strList(raw.tags),
     notes: str(raw.notes),
     artworkUrl: str(raw.artwork_url ?? raw.artworkUrl) || null,
+    metadataProviderId: str(raw.metadata_provider_id ?? raw.metadataProviderId) || null,
+    metadataSource: str(raw.metadata_source ?? raw.metadataSource) || null,
   }
   return { draft, issues }
 }
