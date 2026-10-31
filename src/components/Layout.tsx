@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Library, History, ListMusic, Dna, CalendarRange, Upload, Settings, Ellipsis } from 'lucide-react'
 import { cx } from '../lib/utils'
@@ -150,7 +150,15 @@ export function Layout() {
         <div className="mx-auto max-w-6xl">
           {/* keyed on the path: every page drifts softly into place */}
           <div key={location.pathname} className="animate-page-enter">
-            <Outlet />
+            <Suspense
+              fallback={
+                <div className="p-8 text-center font-mono text-xs uppercase tracking-kicker text-cream-600">
+                  lade …
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
           </div>
         </div>
       </main>

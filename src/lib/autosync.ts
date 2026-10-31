@@ -133,7 +133,7 @@ export async function pushDirtyReviews(): Promise<void> {
   const user = await cloudSession()
   if (!user) return
 
-  for (const id of [...readPendingDeletes()]) {
+  for (const id of readPendingDeletes()) {
     await supabase.from('review_tags').delete().eq('review_id', id)
     const { error } = await supabase.from('reviews').delete().eq('id', id)
     if (error) throw new Error(`Löschen in der Cloud fehlgeschlagen: ${error.message}`)

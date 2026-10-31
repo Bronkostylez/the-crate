@@ -230,8 +230,8 @@ export function computeHistoryStats(plays: Play[], days: number | null): History
 export function formatDuration(ms: number): string {
   const hours = Math.floor(ms / 3600000)
   const minutes = Math.round((ms % 3600000) / 60000)
-  if (hours === 0) return `${minutes} Min`
-  if (hours < 100) return `${hours} Std ${minutes} Min`
+  if (hours === 0) return `${minutes}\u00A0Min`
+  if (hours < 100) return `${hours} Std ${minutes}\u00A0Min`
   const days = Math.floor(hours / 24)
   return `${days} Tage ${hours % 24} Std`
 }

@@ -238,7 +238,7 @@ export async function syncCloud(): Promise<CloudSyncResult> {
 
   // reviews: replay queued deletions first (auto-sync keeps this queue
   // for offline deletes), then push local state, then pull newer rows
-  for (const id of [...readPendingDeletes()]) {
+  for (const id of readPendingDeletes()) {
     await supabase.from('review_tags').delete().eq('review_id', id)
     const { error } = await supabase.from('reviews').delete().eq('id', id)
     if (!error) removePendingDelete(id)

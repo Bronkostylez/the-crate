@@ -90,7 +90,8 @@ body {
   .crate-btn {
     @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-[#EFE9DC]/20 bg-ink-850 px-4 py-2
       text-sm font-medium text-cream-300 transition-all md:min-h-0
-      hover:-translate-y-0.5 hover:-rotate-1 hover:text-cream-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:rotate-0;
+      hover:-translate-y-0.5 hover:-rotate-1 hover:text-cream-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust-500/60
+      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:rotate-0;
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
   }
   .crate-btn:active:not(:disabled) {
@@ -98,10 +99,19 @@ body {
     box-shadow: none;
   }
 
+  /* quiet ghost button: no fill, hairline border */
+  .crate-btn-ghost {
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-[#EFE9DC]/15 bg-transparent px-4 py-2
+      text-sm font-medium text-cream-500 transition-all md:min-h-0
+      hover:-translate-y-0.5 hover:border-[#EFE9DC]/35 hover:text-cream-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust-500/60
+      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0;
+  }
+
   .crate-btn-primary {
     @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-rust-600 bg-rust-500 px-4 py-2
       text-sm font-semibold text-[#FFF3E2] transition-all md:min-h-0
-      hover:-translate-y-0.5 hover:rotate-1 hover:bg-rust-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:rotate-0;
+      hover:-translate-y-0.5 hover:rotate-1 hover:bg-rust-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust-300/70
+      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:rotate-0;
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
   }
   .crate-btn-primary:active:not(:disabled) {
@@ -118,7 +128,7 @@ body {
 
   /* torn divider with a label */
   .rule {
-    @apply flex items-center gap-3;
+    @apply flex flex-wrap items-center gap-x-3 gap-y-0;
   }
   .rule::after {
     content: '';

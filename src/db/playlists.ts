@@ -249,7 +249,7 @@ export function splitArtists(track: { trackName: string; artistName: string }): 
     const p = part.trim()
     if (p) out.add(p)
   }
-  const feat = /[\(\[]\s*(?:f(?:ea)?t|with)\.?\s+([^\)\]]+)[\)\]]/i.exec(track.trackName)
+  const feat = /[([]\s*(?:f(?:ea)?t|with)\.?\s+([^)]]+)[)]]/i.exec(track.trackName)
   if (feat) {
     for (const part of feat[1].split(/,\s*|\s+&\s+|\s+[x×]\s+|\s+und\s+/i)) {
       const p = part.trim()

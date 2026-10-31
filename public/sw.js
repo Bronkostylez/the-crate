@@ -15,7 +15,15 @@ self.addEventListener('fetch', (event) => {
           if (res.ok) cache.put(event.request, res.clone())
           return res
         })
-        .catch(() => cached)
+        .catch(async () => {
+          if (cached) return cached
+          // offline with nothing cached for this URL: serve the app shell for navigations
+          if (event.request.mode === 'navigate') {
+            const shell = await cache.match(new URL('/', self.location.origin + self.registration.scope).pathname)
+            if (shell) return shell
+          }
+          return Response.error()
+        })
       return cached || network
     }),
   )

@@ -94,7 +94,7 @@ export function RecapPage() {
             <div className="mt-4 grid grid-cols-3 gap-3 animate-stagger">
               <div>
                 <p className="kicker">Hörzeit</p>
-                <p className="mt-1 font-display text-2xl text-cream-100">
+                <p className="mt-1 font-display text-xl leading-tight text-cream-100 sm:text-2xl">
                   {recap.estimatedMs > 0 ? 'ca. ' : ''}{formatDuration(recap.totalMs)}
                 </p>
                 {recap.estimatedMs > 0 && (
@@ -103,11 +103,11 @@ export function RecapPage() {
               </div>
               <div>
                 <p className="kicker">Plays</p>
-                <p className="mt-1 font-display text-2xl text-cream-100">{recap.playCount.toLocaleString('de-DE')}</p>
+                <p className="mt-1 font-display text-xl leading-tight text-cream-100 sm:text-2xl">{recap.playCount.toLocaleString('de-DE')}</p>
               </div>
               <div>
                 <p className="kicker">Aktive Tage</p>
-                <p className="mt-1 font-display text-2xl text-cream-100">{recap.activeDays}</p>
+                <p className="mt-1 font-display text-xl leading-tight text-cream-100 sm:text-2xl">{recap.activeDays}</p>
               </div>
             </div>
           </section>

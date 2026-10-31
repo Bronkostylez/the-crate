@@ -66,7 +66,7 @@ export function DnaPage() {
 
       {dna.genres.length === 0 && dna.coverage.plays > 0 && (
         <p className="crate-card px-4 py-3 text-sm text-cream-500">
-          Dein Archiv ist noch leer — Genre-, Ära- und Szenen-Profile entstehen aus deinen Reviews. Der Hörverlauf fließt schon in die Entwicklungs-Charts ein.
+          Noch keine Genre-Tags im Archiv — Genre-, Ära- und Szenen-Profile entstehen, sobald deine Reviews Genres tragen. Der Hörverlauf fließt schon in die Entwicklungs-Charts ein.
         </p>
       )}
 
@@ -110,7 +110,7 @@ export function DnaPage() {
 
       {dna.eras.length > 0 && (
         <section className="crate-card p-5">
-          <p className="kicker rule">Deine Äras <span className="normal-case tracking-normal">(Reviews pro Jahrzehnt + Ø-Bewertung)</span></p>
+          <p className="kicker rule">Deine Äras <span className="basis-full normal-case tracking-normal sm:basis-auto">(Reviews pro Jahrzehnt + Ø-Bewertung)</span></p>
           <div className="mt-4 h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dna.eras} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
@@ -204,7 +204,7 @@ export function DnaPage() {
 
       {dna.monthly.length > 0 && (
         <section className="crate-card p-5">
-          <p className="kicker rule">Entwicklung <span className="normal-case tracking-normal">(Hörzeit pro Monat + meistgehörter Artist)</span></p>
+          <p className="kicker rule">Entwicklung <span className="basis-full normal-case tracking-normal sm:basis-auto">(Hörzeit pro Monat + meistgehörter Artist)</span></p>
           <div className="mt-4 h-44">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dna.monthly} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>

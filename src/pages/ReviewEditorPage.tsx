@@ -213,7 +213,7 @@ export function ReviewEditorPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
         <div className="space-y-3">
-          <div className="crate-card overflow-hidden">
+          <div className="crate-card mx-auto max-w-60 overflow-hidden lg:mx-0 lg:max-w-none">
             <SleeveArtwork artist={draft.artist || '?'} albumTitle={draft.albumTitle || 'Ohne Titel'} artworkUrl={draft.artworkUrl} />
           </div>
           {metaSource && <p className="font-mono text-[10px] uppercase tracking-wider text-cream-600">Metadaten: {metaSource}</p>}
