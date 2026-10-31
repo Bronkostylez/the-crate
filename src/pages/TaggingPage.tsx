@@ -109,7 +109,7 @@ export function TaggingPage() {
       <div className="space-y-8">
         <header>
           <p className="kicker">Genre-Runde</p>
-          <h1 className="mt-1 font-display text-3xl">Tagg dein Regal.</h1>
+          <h1 className="page-title">Tagg dein Regal.</h1>
         </header>
         <EmptyState
           icon={Tags}
@@ -127,7 +127,7 @@ export function TaggingPage() {
     <div className="space-y-6">
       <header>
         <p className="kicker">Genre-Runde</p>
-        <h1 className="mt-1 font-display text-3xl">Tagg dein Regal.</h1>
+        <h1 className="page-title">Tagg dein Regal.</h1>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-cream-500">
           Deine Genres, deine Taxonomie — nichts wird automatisch befüllt. Alles, was du hier setzt, fließt direkt in
           The DNA.
@@ -176,13 +176,13 @@ export function TaggingPage() {
 
           {/* remount per album => the card animates in on every step */}
           <div key={current.id} className="animate-page-enter space-y-6">
-            <div className="crate-card flex items-center gap-4 p-4">
+            <div className="crate-card halftone-corner flex items-center gap-4 p-4">
               <div className="w-24 shrink-0 -rotate-2 overflow-hidden rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] sm:w-28">
                 <SleeveArtwork artist={current.artist} albumTitle={current.albumTitle} artworkUrl={current.artworkUrl} />
               </div>
               <div className="min-w-0">
                 <p className="kicker">{current.artist}</p>
-                <h2 className="mt-1 truncate font-display text-2xl text-cream-100">{current.albumTitle}</h2>
+                <h2 className="mt-1 truncate font-block text-xl uppercase leading-tight text-cream-100" style={{ textShadow: '2px 2px 0 rgba(201,48,24,0.6)' }}>{current.albumTitle}</h2>
                 <p className="mt-1 text-sm text-cream-500">
                   {current.releaseYear ?? 'Jahr unbekannt'}
                   {current.rating != null && <> · {formatRating(current.rating)}</>}

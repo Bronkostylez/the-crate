@@ -60,7 +60,7 @@ export function PlaylistPage() {
       <div className="space-y-8">
         <header>
           <p className="kicker">Die Playlist</p>
-          <h1 className="mt-1 font-display text-3xl">Deine Playlist, seziert.</h1>
+          <h1 className="page-title">Deine Playlist, seziert.</h1>
         </header>
         <EmptyState
           icon={ListMusic}
@@ -86,7 +86,7 @@ export function PlaylistPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="kicker">Die Playlist</p>
-          <h1 className="mt-1 font-display text-3xl">{latest!.name}</h1>
+          <h1 className="page-title">{latest!.name}</h1>
           <p className="mt-1 text-sm text-cream-500">
             {latest!.trackCount.toLocaleString('de-DE')} Tracks · Stand: Import vom {formatDate(latest!.importedAt)} · Quelle: {SOURCE_LABELS[latest!.source]}
           </p>

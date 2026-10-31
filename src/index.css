@@ -4,10 +4,11 @@
 
 /* ─────────────────────────────────────────────
    THE CRATE — design system
-   Cutout collage / mixed media, after De La Soul's
-   "RUN IT BACK!!!" video: photocopied night ground,
-   heavy xerox grain, torn paper scraps, white
-   handwriting, red marker outlines, masking tape.
+   Comic-zine collage after De La Soul's "RUN IT BACK!!!"
+   video and 3 Feet High and Rising: photocopied night
+   ground, Ben-Day halftone dots, block letters with a
+   red offset, torn paper scraps, white handwriting,
+   marker strokes, masking tape, sticker shadows.
    ───────────────────────────────────────────── */
 
 :root {
@@ -54,13 +55,68 @@ body {
     @apply font-mono text-[11px] uppercase tracking-kicker text-cream-500;
   }
 
-  /* pasted paper panel: lifted dark sheet with a pale cutout edge and grain */
+  /* comic cover headline: block letters, red offset like the RUN IT BACK cards */
+  .page-title {
+    @apply mt-1 font-block uppercase leading-[1.08] tracking-tight text-cream-100;
+    font-size: clamp(1.45rem, 5vw, 2.3rem);
+    text-shadow: 3px 3px 0 rgba(201, 48, 24, 0.8);
+  }
+
+  /* pasted paper panel: comic frame — 2px ink line, hard offset shadow, grain */
   .crate-card {
-    @apply relative rounded-2xl border border-[#EFE9DC]/15 bg-ink-850;
+    @apply relative rounded-2xl border-2 border-[#EFE9DC]/20 bg-ink-850;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
-    box-shadow:
-      0 1px 0 rgba(0, 0, 0, 0.35),
-      8px 12px 28px -12px rgba(0, 0, 0, 0.55);
+    box-shadow: 5px 6px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  /* Ben-Day dot patch fading in from a corner — pure CSS halftone, no images.
+     Direction via mask: default top-right, -bl bottom-left. */
+  .halftone-corner {
+    @apply relative;
+  }
+  .halftone-corner::before {
+    content: '';
+    @apply pointer-events-none absolute right-0 top-0 h-20 w-20;
+    background-image: radial-gradient(circle, rgba(224, 68, 36, 0.26) 1.2px, transparent 1.7px);
+    background-size: 7px 7px;
+    -webkit-mask-image: linear-gradient(225deg, black 25%, transparent 72%);
+    mask-image: linear-gradient(225deg, black 25%, transparent 72%);
+    border-top-right-radius: inherit;
+  }
+  .halftone-corner-bl::before {
+    right: auto;
+    top: auto;
+    left: 0;
+    bottom: 0;
+    -webkit-mask-image: linear-gradient(45deg, black 25%, transparent 72%);
+    mask-image: linear-gradient(45deg, black 25%, transparent 72%);
+    border-top-right-radius: 0;
+    border-bottom-left-radius: inherit;
+  }
+
+  /* full halftone field, e.g. behind hero numbers */
+  .halftone-rust {
+    background-image: radial-gradient(circle, rgba(224, 68, 36, 0.22) 1.2px, transparent 1.7px);
+    background-size: 8px 8px;
+  }
+  .halftone-bone {
+    background-image: radial-gradient(circle, rgba(239, 233, 220, 0.1) 1px, transparent 1.5px);
+    background-size: 7px 7px;
+  }
+
+  /* comic starburst badge — clipped 12-point star, marker-yellow ink */
+  .burst {
+    @apply inline-flex items-center justify-center bg-marker-yellow font-mono font-bold uppercase text-ink-950;
+    clip-path: polygon(50.0% 0.0%, 59.8% 13.3%, 75.0% 6.7%, 76.9% 23.1%, 93.3% 25.0%, 86.7% 40.2%, 100.0% 50.0%, 86.7% 59.8%, 93.3% 75.0%, 76.9% 76.9%, 75.0% 93.3%, 59.8% 86.7%, 50.0% 100.0%, 40.2% 86.7%, 25.0% 93.3%, 23.1% 76.9%, 6.7% 75.0%, 13.3% 59.8%, 0.0% 50.0%, 13.3% 40.2%, 6.7% 25.0%, 23.1% 23.1%, 25.0% 6.7%, 40.2% 13.3%);
+  }
+
+  /* rough red marker stroke under a word */
+  .marker-underline {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='10' viewBox='0 0 120 10'%3E%3Cpath d='M2 7c13-4 23 2 36-2s25 4 38 0 24 2 42-2' stroke='%23E04424' stroke-width='3.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 100% 0.32em;
+    padding-bottom: 0.18em;
   }
 
   /* masking tape strip — translucent, yellowed, sticks scraps down */
@@ -82,48 +138,48 @@ body {
   }
 
   .crate-input {
-    @apply w-full rounded-xl border border-[#EFE9DC]/20 bg-ink-800 px-3 py-2.5 text-base text-cream-100 md:py-2 md:text-sm
+    @apply w-full rounded-xl border-2 border-[#EFE9DC]/20 bg-ink-800 px-3 py-2.5 text-base text-cream-100 md:py-2 md:text-sm
       placeholder:text-cream-600 focus:border-rust-400 focus:outline-none focus:ring-2 focus:ring-rust-500/40;
   }
 
-  /* sticker buttons: round, soft, a little lift, a little wiggle */
+  /* sticker buttons: 2px ink line, hard shadow, a little lift, a little wiggle */
   .crate-btn {
-    @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-[#EFE9DC]/20 bg-ink-850 px-4 py-2
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[#EFE9DC]/20 bg-ink-850 px-4 py-2
       text-sm font-medium text-cream-300 transition-all md:min-h-0
       hover:-translate-y-0.5 hover:-rotate-1 hover:text-cream-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust-500/60
       disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:rotate-0;
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
   }
   .crate-btn:active:not(:disabled) {
-    transform: translateY(1px);
+    transform: translate(2px, 2px);
     box-shadow: none;
   }
 
   /* quiet ghost button: no fill, hairline border */
   .crate-btn-ghost {
-    @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-[#EFE9DC]/15 bg-transparent px-4 py-2
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[#EFE9DC]/15 bg-transparent px-4 py-2
       text-sm font-medium text-cream-500 transition-all md:min-h-0
       hover:-translate-y-0.5 hover:border-[#EFE9DC]/35 hover:text-cream-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust-500/60
       disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0;
   }
 
   .crate-btn-primary {
-    @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-rust-600 bg-rust-500 px-4 py-2
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-rust-600 bg-rust-500 px-4 py-2
       text-sm font-semibold text-[#FFF3E2] transition-all md:min-h-0
       hover:-translate-y-0.5 hover:rotate-1 hover:bg-rust-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust-300/70
       disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:rotate-0;
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.55);
   }
   .crate-btn-primary:active:not(:disabled) {
-    transform: translateY(1px);
+    transform: translate(2px, 2px);
     box-shadow: none;
   }
 
   /* sticker chip */
   .crate-chip {
-    @apply inline-flex items-center rounded-full border border-[#EFE9DC]/15 bg-ink-800 px-2.5 py-0.5
+    @apply inline-flex items-center rounded-full border-2 border-[#EFE9DC]/15 bg-ink-800 px-2.5 py-0.5
       font-mono text-[11px] text-cream-300;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
   }
 
   /* torn divider with a label */
@@ -143,6 +199,11 @@ body {
   }
   .tilt-r {
     transform: rotate(1.1deg);
+  }
+
+  /* cutout paper scrap with a roughly torn edge */
+  .cutout {
+    clip-path: polygon(0.5% 4%, 3% 0.5%, 24% 1.5%, 48% 0%, 73% 1.8%, 97% 0.6%, 99.5% 5%, 99% 30%, 100% 55%, 98.8% 82%, 99.6% 97%, 94% 99.5%, 68% 98.4%, 42% 100%, 18% 98.6%, 2% 99.4%, 0.4% 93%, 1.2% 62%, 0% 38%);
   }
 
   /* ── motion: everything drifts, nothing snaps ──────────────────────

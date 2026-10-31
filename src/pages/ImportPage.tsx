@@ -64,7 +64,7 @@ export function ImportPage() {
     <div className="space-y-6">
       <header>
         <p className="kicker">Import & Export</p>
-        <h1 className="mt-1 font-display text-3xl">Hol deine Reviews rein</h1>
+        <h1 className="page-title">Hol deine Reviews rein</h1>
         <p className="mt-1 max-w-2xl text-sm text-cream-500">
           Füll das Template mit deinen 30 bestehenden Reviews, zieh die Datei hier rein, prüf die Vorschau,
           bestätige. Dein Original-Wortlaut wird wortgleich importiert — nichts wird umgeschrieben, nichts erfunden.

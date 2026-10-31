@@ -2,11 +2,14 @@
 
 Tylers privates Hip-Hop-Archiv. Teil Plattensammlung, Teil Review-Archiv,
 Teil Hör-Statistik — gebaut um den Geschmack einer einzigen Person, nicht um
-Klickzahlen. Der Look ist eine Cutout-Collage im Mixed-Media-Stil des
+Klickzahlen. Der Look ist ein Comic-Zine im Mixed-Media-Stil des
 De-La-Soul-Videos „RUN IT BACK!!!": fotokopierter Nacht-Grund mit Xerox-Korn,
-ausgeschnittene Cover mit Tesastreifen aufgeklebt, weiße Handschrift auf
-Dunklem, rote Marker-Outlines und Blockbuchstaben, handgezeichnete Doodles —
-aufgeräumt trotz Bastelei, auch auf dem Handy. Und jede Zahl auf dem Bildschirm kommt aus einer echten,
+Ben-Day-Halftone-Punkte wie im Heftdruck, Blockbuchstaben mit rotem
+Offset-Schlag auf jeder Überschrift, ausgeschnittene Cover mit Tesastreifen
+aufgeklebt, Marker-Unterstreichungen, Sternburst-Sticker für frische
+Meilensteine, Y2K-Sternchen und handgezeichnete Doodles — alles reines
+CSS/Inline-SVG, kein einziges Texture-PNG, damit das Handy nicht schwitzt.
+Aufgeräumt trotz Bastelei, auch auf dem Handy. Und jede Zahl auf dem Bildschirm kommt aus einer echten,
 importierten Datenzeile. Nichts wird erfunden, um ein Chart zu füllen.
 
 Live: `https://bronkostylez.github.io/the-crate/` (sobald deployed)

@@ -33,7 +33,7 @@ export function DnaPage() {
       <div className="space-y-8">
         <header>
           <p className="kicker">The DNA</p>
-          <h1 className="mt-1 font-display text-3xl">Deine musikalische Identität.</h1>
+          <h1 className="page-title">Deine musikalische Identität.</h1>
         </header>
         <EmptyState
           icon={Dna}
@@ -55,7 +55,7 @@ export function DnaPage() {
     <div className="space-y-6">
       <header>
         <p className="kicker">The DNA</p>
-        <h1 className="mt-1 font-display text-3xl">Deine musikalische Identität.</h1>
+        <h1 className="page-title">Deine musikalische Identität.</h1>
         <p className="mt-1 max-w-2xl text-sm text-cream-500">
           Gerechnet aus {dna.coverage.reviews} Reviews ({dna.coverage.ratedReviews} bewertet) und {dna.coverage.plays.toLocaleString('de-DE')} Plays.
           {' '}{matchPct}% deiner Hörzeit lassen sich auf Alben im Archiv matchen.

@@ -56,7 +56,7 @@ export function ArchivePage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="kicker">Das Archiv</p>
-          <h1 className="mt-1 font-display text-3xl">Album-Reviews</h1>
+          <h1 className="page-title">Album-Reviews</h1>
           <p className="mt-1 text-sm text-cream-500">
             {reviews.length} {reviews.length === 1 ? 'Platte' : 'Platten'} im Regal
             {visible.length !== reviews.length ? ` · ${visible.length} angezeigt` : ''}
@@ -135,7 +135,7 @@ export function ArchivePage() {
                 <Link
                   key={r.id}
                   to={`/archive/${r.id}`}
-                  className={`crate-card group transition-all hover:border-rust-600 ${i % 3 === 1 ? 'tilt-r' : i % 3 === 2 ? 'tilt-l' : ''}`}
+                  className={`crate-card group transition-all hover:-translate-y-1 hover:rotate-0 hover:border-rust-600 ${i % 3 === 1 ? 'tilt-r' : i % 3 === 2 ? 'tilt-l' : ''}`}
                 >
                   {/* masking tape holds the pasted cover down */}
                   <span className="tape z-10" />
@@ -147,7 +147,7 @@ export function ArchivePage() {
                     <p className="truncate text-xs text-cream-500">{r.artist}{r.releaseYear ? ` · ${r.releaseYear}` : ''}</p>
                     <div className="flex items-center justify-between pt-1">
                       <RatingBadge rating={r.rating} size="sm" />
-                      {r.genres[0] && <span className="truncate pl-2 font-mono text-[10px] uppercase tracking-wider text-cream-600">{r.genres[0]}</span>}
+                      {r.genres[0] && <span className="crate-chip -rotate-1 truncate text-[10px] uppercase tracking-wider">{r.genres[0]}</span>}
                     </div>
                   </div>
                 </Link>

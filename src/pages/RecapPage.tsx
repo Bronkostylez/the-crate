@@ -44,7 +44,7 @@ export function RecapPage() {
       <div className="space-y-8">
         <header>
           <p className="kicker">Recaps</p>
-          <h1 className="mt-1 font-display text-3xl">Dein Monat. Dein Jahr. Dein Sound.</h1>
+          <h1 className="page-title">Dein Monat. Dein Jahr. Dein Sound.</h1>
         </header>
         <EmptyState
           icon={CalendarRange}
@@ -65,7 +65,7 @@ export function RecapPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="kicker">Recaps</p>
-          <h1 className="mt-1 font-display text-3xl">Dein Monat. Dein Jahr. Dein Sound.</h1>
+          <h1 className="page-title">Dein Monat. Dein Jahr. Dein Sound.</h1>
         </div>
         <div className="flex items-center gap-2">
           <select

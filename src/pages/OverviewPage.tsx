@@ -7,6 +7,7 @@ import { StatCard } from '../components/StatCard'
 import { RatingBadge } from '../components/RatingBadge'
 import { SleeveArtwork } from '../components/SleeveArtwork'
 import { EmptyState } from '../components/EmptyState'
+import { SparkleDoodle } from '../components/Doodles'
 import { formatDate } from '../lib/utils'
 
 const tooltipStyle = {
@@ -27,7 +28,7 @@ export function OverviewPage() {
       <div className="space-y-8">
         <header>
           <p className="kicker">Überblick</p>
-          <h1 className="mt-1 font-display text-3xl md:text-4xl">Dein Hip-Hop-Universum, in Zahlen.</h1>
+          <h1 className="page-title">Dein Hip-Hop-Universum, in Zahlen.</h1>
         </header>
         <EmptyState
           icon={Disc3}
@@ -60,20 +61,21 @@ export function OverviewPage() {
 
   return (
     <div className="space-y-8">
-      <header>
+      <header className="relative">
         <p className="kicker">Überblick</p>
-        <h1 className="mt-1 font-display text-3xl md:text-4xl">Dein Hip-Hop-Universum, in Zahlen.</h1>
+        <h1 className="page-title">Dein Hip-Hop-Universum, <span className="marker-underline">in Zahlen.</span></h1>
+        <SparkleDoodle className="absolute -top-1 right-0 h-6 w-6 opacity-70 md:right-16" />
       </header>
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4 animate-stagger">
-        <StatCard label="Rezensierte Alben" value={reviews.length} />
-        <StatCard label="Ø Bewertung" value={avg === null ? '—' : avg.toFixed(1)} sub={rated.length ? `aus ${rated.length} bewerteten Alben` : undefined} />
-        <StatCard label="Perfekte 10en" value={tens} />
-        <StatCard label="Artists im Archiv" value={artistCount} sub={`${genreCount} Genres getaggt`} />
+        <StatCard label="Rezensierte Alben" value={reviews.length} tilt={-1} />
+        <StatCard label="Ø Bewertung" value={avg === null ? '—' : avg.toFixed(1)} sub={rated.length ? `aus ${rated.length} bewerteten Alben` : undefined} tilt={1} />
+        <StatCard label="Perfekte 10en" value={tens} tilt={-1} />
+        <StatCard label="Artists im Archiv" value={artistCount} sub={`${genreCount} Genres getaggt`} tilt={1} />
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2 animate-stagger">
-        <div className="crate-card p-5">
+        <div className="crate-card halftone-corner p-5">
           <p className="kicker rule">Bewertungs-Verteilung</p>
           <div className="mt-4 h-52">
             <ResponsiveContainer width="100%" height="100%">

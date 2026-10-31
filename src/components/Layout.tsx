@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Library, History, ListMusic, Dna, CalendarRange, Upload, Settings, Ellipsis, Tags, Trophy } from 'lucide-react'
 import { cx } from '../lib/utils'
-import { HeadphonesDoodle, SquiggleDoodle, StarDoodle, VinylDoodle } from './Doodles'
+import { HeadphonesDoodle, SparkleDoodle, SquiggleDoodle, StarDoodle, VinylDoodle } from './Doodles'
 
 const NAV = [
   { to: '/', label: 'Überblick', icon: LayoutDashboard, end: true },
@@ -111,13 +111,14 @@ export function Layout() {
     <div className="flex min-h-full flex-col md:flex-row">
       {/* desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-dashed border-[#EFE9DC]/15 bg-ink-900 p-4 md:flex">
-        <div className="mb-8 px-2 pt-3">
+        <div className="relative mb-8 px-2 pt-3">
           {/* logo as a taped-on paper scrap */}
-          <div className="tilt-l relative w-fit rounded-md bg-[#EFE9DC] px-4 py-2 shadow-[0_3px_0_rgba(0,0,0,0.45)]">
+          <div className="cutout tilt-l relative w-fit bg-[#EFE9DC] px-4 py-2 shadow-[4px_4px_0_rgba(0,0,0,0.5)]">
             <span className="tape" />
             <p className="font-block text-2xl uppercase leading-none tracking-tight text-rust-500">The Crate</p>
           </div>
           <p className="kicker mt-3 whitespace-nowrap">privates archiv · vol. 1</p>
+          <SparkleDoodle className="absolute right-0 top-0 h-5 w-5 opacity-80" />
         </div>
         <nav className="flex flex-col gap-1">
           {NAV.map(({ to, label, icon: Icon, end }) => (
@@ -140,11 +141,12 @@ export function Layout() {
 
       {/* phone: slim taped logo header … */}
       <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-dashed border-[#EFE9DC]/15 bg-ink-900/95 px-4 py-2.5 backdrop-blur md:hidden">
-        <div className="tilt-l relative rounded bg-[#EFE9DC] px-2.5 py-1 shadow-[0_2px_0_rgba(0,0,0,0.45)]">
+        <div className="cutout tilt-l relative bg-[#EFE9DC] px-2.5 py-1 shadow-[3px_3px_0_rgba(0,0,0,0.5)]">
           <p className="font-block text-sm uppercase leading-none tracking-tight text-rust-500">The Crate</p>
         </div>
         <p className="kicker">privates archiv</p>
-        <VinylDoodle className="ml-auto h-5 w-5 opacity-70" stroke="#E04424" />
+        <SparkleDoodle className="ml-auto h-4 w-4 opacity-80" />
+        <VinylDoodle className="ml-2 h-5 w-5 opacity-70" stroke="#E04424" />
       </header>
 
       <main className="relative min-w-0 flex-1 px-4 pb-28 pt-5 md:px-10 md:py-8">

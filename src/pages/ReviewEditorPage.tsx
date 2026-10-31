@@ -179,7 +179,7 @@ export function ReviewEditorPage() {
           <Link to="/archive" className="kicker inline-flex items-center gap-1 hover:text-cream-300">
             <ArrowLeft className="h-3 w-3" /> Das Archiv
           </Link>
-          <h1 className="mt-1 font-display text-3xl">
+          <h1 className="page-title">
             {isNew ? 'Neue Review' : draft.albumTitle || 'Ohne Titel'}
           </h1>
           {!isNew && (

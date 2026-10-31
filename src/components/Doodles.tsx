@@ -53,3 +53,26 @@ export function SquiggleDoodle({ className, stroke = '#E04424' }: DoodleProps) {
     </svg>
   )
 }
+
+/** Y2K sparkle — the four-point star from late-90s clip-art, filled ink. */
+export function SparkleDoodle({ className, fill = '#E9C46A' }: { className?: string; fill?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" fill="none" className={className} aria-hidden="true">
+      <path d="M50 4l9 37 37 9-37 9-9 37-9-37-37-9 37-9 9-37Z" fill={fill} />
+    </svg>
+  )
+}
+
+/** marker circle scribble — rings a word like someone circling it on paper */
+export function CircleScribbleDoodle({ className, stroke = '#E04424' }: DoodleProps) {
+  return (
+    <svg viewBox="0 0 120 60" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M60 6C30 5 6 14 5 29c-1 16 26 26 56 25 29-1 53-10 54-24C116 16 92 6 63 6c-18 0-33 3-42 8"
+        stroke={stroke}
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}

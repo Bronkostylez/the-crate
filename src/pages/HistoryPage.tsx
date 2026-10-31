@@ -90,7 +90,7 @@ export function HistoryPage() {
       <div className="space-y-8">
         <header>
           <p className="kicker">Hörverlauf</p>
-          <h1 className="mt-1 font-display text-3xl">Was wirklich gelaufen ist.</h1>
+          <h1 className="page-title">Was wirklich gelaufen ist.</h1>
         </header>
         <EmptyState
           icon={History}
@@ -123,7 +123,7 @@ export function HistoryPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="kicker">Hörverlauf</p>
-          <h1 className="mt-1 font-display text-3xl">Was wirklich gelaufen ist.</h1>
+          <h1 className="page-title">Was wirklich gelaufen ist.</h1>
           <p className="mt-1 text-sm text-cream-500">
             {plays.length.toLocaleString('de-DE')} Plays · Quelle:{' '}
             {plays.some((p) => p.source === 'spotify_api') ? 'Spotify-Export + Live-Sync' : 'Spotify-Export'}

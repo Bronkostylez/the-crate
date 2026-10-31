@@ -79,7 +79,7 @@ export function SettingsPage() {
     <div className="space-y-6">
       <header>
         <p className="kicker">Einstellungen</p>
-        <h1 className="mt-1 font-display text-3xl">Verbindungen</h1>
+        <h1 className="page-title">Verbindungen</h1>
         <p className="mt-1 max-w-2xl text-sm text-cream-500">
           Trag deine Zugangsdaten hier ein, sobald die Konten existieren. Alles unten ist bewusst frontend-sicher —
           die Werte liegen nur in diesem Browser und wären im Seitenquelltext ohnehin sichtbar. Die App läuft auch

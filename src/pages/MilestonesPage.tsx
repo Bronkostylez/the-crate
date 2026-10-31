@@ -12,16 +12,16 @@ const LAST_SEEN_KEY = 'the-crate:milestones-last-seen'
 function ReachedCard({ m, isNew, tilt }: { m: Milestone; isNew: boolean; tilt: number }) {
   return (
     <div
-      className="crate-card relative p-4"
+      className="crate-card halftone-corner relative p-4"
       style={{ transform: `rotate(${tilt}deg)` }}
     >
       {isNew && (
-        <span className="absolute -top-2 right-3 -rotate-3 rounded-sm bg-marker-yellow px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-ink-950 shadow-md">
+        <span className="burst absolute -top-3 right-2 h-12 w-12 rotate-12 text-[10px] tracking-wider">
           Neu
         </span>
       )}
       <p className="kicker">{m.subject}</p>
-      <p className="mt-1 font-display text-4xl text-rust-400">
+      <p className="mt-1 font-block text-3xl text-rust-400" style={{ textShadow: '2px 2px 0 rgba(0,0,0,0.5)' }}>
         {m.target.toLocaleString('de-DE')}
         <span className="ml-1 text-xl text-cream-300">{m.verb}</span>
       </p>
@@ -59,7 +59,7 @@ export function MilestonesPage() {
       <div className="space-y-8">
         <header>
           <p className="kicker">Meilensteine</p>
-          <h1 className="mt-1 font-display text-3xl">Deine Trophäen-Vitrine.</h1>
+          <h1 className="page-title">Deine Trophäen-Vitrine.</h1>
         </header>
         <EmptyState
           icon={Trophy}
@@ -75,7 +75,7 @@ export function MilestonesPage() {
     <div className="space-y-8">
       <header>
         <p className="kicker">Meilensteine</p>
-        <h1 className="mt-1 font-display text-3xl">Deine Trophäen-Vitrine.</h1>
+        <h1 className="page-title">Deine Trophäen-Vitrine.</h1>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-cream-500">
           Gerechnet nur aus deinen echten Plays und Reviews. Jeder geknackte Meilenstein zeigt die Zahl und den Tag,
           an dem er gefallen ist — der 100. Play von Illmatic landet auch hier.
