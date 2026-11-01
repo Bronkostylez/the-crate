@@ -1,5 +1,5 @@
 import type { Play, Review } from '../types'
-import { playEffectiveMs, playIsEstimated } from '../db/plays'
+import { countedPlays, playEffectiveMs, playIsEstimated } from '../db/plays'
 
 /**
  * THE DNA — the musical identity engine.
@@ -46,7 +46,7 @@ export interface MonthPoint {
 }
 
 export interface DnaResult {
-  coverage: { reviews: number; ratedReviews: number; plays: number; matchedPlayMs: number; totalPlayMs: number; estimatedPlayMs: number }
+  coverage: { reviews: number; ratedReviews: number; plays: number; skippedPlays: number; matchedPlayMs: number; totalPlayMs: number; estimatedPlayMs: number }
   genres: GenreStat[]
   genresByListening: Array<{ genre: string; minutes: number }>
   eras: EraStat[]
@@ -262,7 +262,9 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
     coverage: {
       reviews: reviews.length,
       ratedReviews: rated.length,
-      plays: plays.length,
+      // skips (< 30 s, export only) count in listening minutes, not as plays
+      plays: countedPlays(plays).length,
+      skippedPlays: plays.length - countedPlays(plays).length,
       matchedPlayMs,
       totalPlayMs,
       estimatedPlayMs,

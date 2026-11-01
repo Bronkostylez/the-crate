@@ -164,7 +164,11 @@ export function HistoryPage() {
           value={`${stats.estimatedMs > 0 ? 'ca. ' : ''}${formatDuration(stats.totalMs)}`}
           sub={stats.estimatedMs > 0 ? `davon ca. ${formatDuration(stats.estimatedMs)} geschätzt (Songlänge × Play)` : undefined}
         />
-        <StatCard label="Plays" value={stats.totalPlays.toLocaleString('de-DE')} />
+        <StatCard
+          label="Plays"
+          value={stats.totalPlays.toLocaleString('de-DE')}
+          sub={stats.skippedPlays > 0 ? `${stats.skippedPlays.toLocaleString('de-DE')} Skips (< 30 s) zählen nur in der Hörzeit` : undefined}
+        />
         <StatCard label="Artists" value={stats.artists.toLocaleString('de-DE')} />
         <StatCard label="Tracks" value={stats.tracks.toLocaleString('de-DE')} />
       </section>

@@ -251,6 +251,16 @@ export function SettingsPage() {
       </section>
 
       <section className="crate-card space-y-3 p-5">
+        <p className="kicker rule">Skip-Filter</p>
+        <p className="text-sm leading-relaxed text-cream-500">
+          Export-Plays unter <span className="text-cream-100">30 Sekunden</span> gelten als Skip: Sie zählen nicht
+          als Play — weder in Statistiken und Top-Listen noch bei Meilensteinen und Sprüchen. Ihre Sekunden
+          bleiben trotzdem in deiner Hörzeit, denn 10 geskippte Sekunden sind 10 gehörte Sekunden. Plays aus dem
+          Live-Sync haben keine echte Abspieldauer und zählen deshalb immer mit. Gelöscht wird nie etwas.
+        </p>
+      </section>
+
+      <section className="crate-card space-y-3 p-5">
         <p className="kicker rule">Was hier niemals reingehört</p>
         <p className="text-sm leading-relaxed text-cream-500">
           Der Supabase-<span className="font-mono text-cream-300">service_role</span>-Key und das Spotify-

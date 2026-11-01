@@ -15,6 +15,26 @@ export function playIsEstimated(p: Play): boolean {
   return p.source === 'spotify_api' && p.msPlayed === 0 && (p.durationMs ?? 0) > 0
 }
 
+/**
+ * Skip-Filter (nur Anzeige, es wird nie etwas gelöscht): Ein Export-Play
+ * unter 30 Sekunden ist ein Skip. Seine Sekunden bleiben in der Hörzeit —
+ * 10 geskippte Sekunden sind 10 gehörte Sekunden — aber er zählt nicht als
+ * Play: nicht in Zählern, Top-Listen, Meilensteinen oder Sprüchen.
+ * Live-Sync-Plays (spotify_api) haben kein echtes ms_played; ein Skip ist
+ * dort nicht erkennbar, also zählen sie immer als Play.
+ */
+export const SKIP_THRESHOLD_MS = 30_000
+
+export function isSkipPlay(p: Play): boolean {
+  if (p.source === 'spotify_api') return false
+  return p.msPlayed < SKIP_THRESHOLD_MS
+}
+
+/** Die Plays, die als Plays zählen — Skips raus, Hörzeit unberührt. */
+export function countedPlays(plays: Play[]): Play[] {
+  return plays.filter((p) => !isSkipPlay(p))
+}
+
 // ── parsing: Spotify Extended Streaming History + the simple account export ──
 
 interface ExtendedRow {
@@ -174,6 +194,8 @@ export async function importPlays(plays: ParsedPlay[], source: Play['source']): 
 
 export interface HistoryStats {
   totalPlays: number
+  /** export plays under 30s in range: no play count, but their seconds stay in totalMs */
+  skippedPlays: number
   totalMs: number
   /** part of totalMs that comes from live-sync estimates (track length), not exact export minutes */
   estimatedMs: number
@@ -194,17 +216,20 @@ export function computeHistoryStats(plays: Play[], days: number | null): History
   let totalMs = 0
   let estimatedMs = 0
 
+  let skippedPlays = 0
   for (const p of inRange) {
+    const skip = isSkipPlay(p)
+    if (skip) skippedPlays++
     const ms = playEffectiveMs(p)
     if (playIsEstimated(p)) estimatedMs += ms
     totalMs += ms
     const a = artistMap.get(p.artistName) ?? { plays: 0, ms: 0 }
-    a.plays++
+    if (!skip) a.plays++
     a.ms += ms
     artistMap.set(p.artistName, a)
     const tk = `${p.trackName}::${p.artistName}`
     const t = trackMap.get(tk) ?? { name: p.trackName, artist: p.artistName, plays: 0, ms: 0 }
-    t.plays++
+    if (!skip) t.plays++
     t.ms += ms
     trackMap.set(tk, t)
     const day = p.playedAt.slice(0, 10)
@@ -216,7 +241,8 @@ export function computeHistoryStats(plays: Play[], days: number | null): History
     .map(([day, ms]) => ({ day: day.slice(5), minutes: Math.round(ms / 60000) }))
 
   return {
-    totalPlays: inRange.length,
+    totalPlays: inRange.length - skippedPlays,
+    skippedPlays,
     totalMs,
     estimatedMs,
     artists: artistMap.size,

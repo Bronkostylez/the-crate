@@ -1,5 +1,5 @@
 import type { Play, Review } from '../types'
-import { playEffectiveMs, playIsEstimated } from '../db/plays'
+import { isSkipPlay, playEffectiveMs, playIsEstimated } from '../db/plays'
 
 /**
  * THE RECAP — monthly and yearly listening recaps.
@@ -94,12 +94,13 @@ export function computeRecap(plays: Play[], reviews: Review[], year: number, mon
   const albumMs = new Map<string, { name: string; artist: string; ms: number }>()
   for (const p of cur) {
     const ms = playEffectiveMs(p)
+    const skip = isSkipPlay(p)
     const a = primaryArtist(p.artistName)
     const ea = artistMs.get(a) ?? { ms: 0, plays: 0 }
-    ea.ms += ms; ea.plays++; artistMs.set(a, ea)
+    ea.ms += ms; if (!skip) ea.plays++; artistMs.set(a, ea)
     const tk = `${p.trackName}::${p.artistName}`
     const et = trackMs.get(tk) ?? { name: p.trackName, artist: p.artistName, ms: 0, plays: 0 }
-    et.ms += ms; et.plays++; trackMs.set(tk, et)
+    et.ms += ms; if (!skip) et.plays++; trackMs.set(tk, et)
     if (p.albumName) {
       const ak = `${p.albumName}::${a}`
       const el = albumMs.get(ak) ?? { name: p.albumName, artist: a, ms: 0 }
@@ -185,7 +186,8 @@ export function computeRecap(plays: Play[], reviews: Review[], year: number, mon
   return {
     label,
     prevLabel: prevPlays.length > 0 ? prev.label : null,
-    playCount: cur.length,
+    // skips stay in totalMs (their seconds were heard) but not in playCount
+    playCount: cur.filter((p) => !isSkipPlay(p)).length,
     totalMs,
     estimatedMs,
     activeDays: days.size,

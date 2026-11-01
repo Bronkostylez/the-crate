@@ -60,6 +60,7 @@ export function DnaPage() {
           Gerechnet aus {dna.coverage.reviews} Reviews ({dna.coverage.ratedReviews} bewertet) und {dna.coverage.plays.toLocaleString('de-DE')} Plays.
           {' '}{matchPct}% deiner Hörzeit lassen sich auf Alben im Archiv matchen.
           {dna.coverage.estimatedPlayMs > 0 && ' Enthält ca.-Schätzungen aus dem Live-Sync (Songlänge × Play) — ein Extended-Export ersetzt sie durch exakte Minuten. '}
+          {dna.coverage.skippedPlays > 0 && ` Davon ${dna.coverage.skippedPlays.toLocaleString('de-DE')} Skips unter 30 Sekunden: Sie zählen in deiner Hörzeit mit, aber nicht als Plays. `}
           Kleine Datenlage, ehrliche Zahlen: Das hier sind Korrelationen, keine Beweise — mit wachsendem Archiv wird das Bild schärfer.
         </p>
       </header>

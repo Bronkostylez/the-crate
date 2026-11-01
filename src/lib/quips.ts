@@ -1,5 +1,6 @@
 import type { Play, Review } from '../types'
 import { computeMilestones, splitMilestones } from './milestones'
+import { countedPlays } from '../db/plays'
 
 /**
  * Personal quips — one cheeky line, computed from real data only, rotating
@@ -39,7 +40,7 @@ interface Candidate {
 
 const topArtist = (d: QuipData) => {
   const c = new Map<string, number>()
-  for (const p of d.plays) c.set(p.artistName, (c.get(p.artistName) ?? 0) + 1)
+  for (const p of countedPlays(d.plays)) c.set(p.artistName, (c.get(p.artistName) ?? 0) + 1)
   return [...c.entries()].sort((a, b) => b[1] - a[1])[0]
 }
 const hoursHeard = (d: QuipData) => d.plays.reduce((s, p) => s + (p.msPlayed || (p.durationMs ?? 0)), 0) / 3600000
@@ -56,7 +57,7 @@ const newest = (d: QuipData) =>
   [...d.reviews].sort((a, b) => (b.reviewDate ?? b.createdAt).localeCompare(a.reviewDate ?? a.createdAt))[0]
 const topTrack = (d: QuipData) => {
   const c = new Map<string, number>()
-  for (const p of d.plays) c.set(p.trackName, (c.get(p.trackName) ?? 0) + 1)
+  for (const p of countedPlays(d.plays)) c.set(p.trackName, (c.get(p.trackName) ?? 0) + 1)
   return [...c.entries()].sort((a, b) => b[1] - a[1])[0]
 }
 
@@ -123,7 +124,7 @@ const POOLS: Record<QuipSpot, Candidate[]> = {
     ] },
   ],
   milestones: [
-    { when: (d) => d.reviews.some((r) => r.albumTitle === 'Illmatic') && d.plays.filter((p) => p.albumName === 'Illmatic').length >= 100, lines: () => [
+    { when: (d) => d.reviews.some((r) => r.albumTitle === 'Illmatic') && countedPlays(d.plays).filter((p) => p.albumName === 'Illmatic').length >= 100, lines: () => [
       'Über 100 Plays Illmatic. Nas würde nicken. Kurz, aber er würde nicken.',
     ] },
     { when: (d) => splitMilestones(computeMilestones(d.reviews, d.plays)).reached.length > 0, lines: (d) => [

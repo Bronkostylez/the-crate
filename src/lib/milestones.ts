@@ -1,4 +1,5 @@
 import type { Play, Review } from '../types'
+import { countedPlays } from '../db/plays'
 
 /**
  * Milestones, computed only from real data. A milestone's reachedAt is the
@@ -53,6 +54,10 @@ function entityMilestones(
 export function computeMilestones(reviews: Review[], plays: Play[]): Milestone[] {
   const out: Milestone[] = []
 
+  // play milestones count only real plays — skips (< 30 s, export only) are
+  // filtered. Listening hours below keep every second, skips included.
+  const counted = countedPlays(plays)
+
   // per album / artist / track
   const albums = new Map<string, { label: string; dates: string[] }>()
   const artists = new Map<string, { label: string; dates: string[] }>()
@@ -62,7 +67,7 @@ export function computeMilestones(reviews: Review[], plays: Play[]): Milestone[]
     g.dates.push(at)
     map.set(key, g)
   }
-  for (const p of plays) {
+  for (const p of counted) {
     add(artists, norm(p.artistName), p.artistName, p.playedAt)
     add(tracks, `${norm(p.artistName)}|${norm(p.trackName)}`, `${p.trackName} — ${p.artistName}`, p.playedAt)
     if (p.albumName) add(albums, `${norm(p.artistName)}|${norm(p.albumName)}`, p.albumName, p.playedAt)
@@ -72,17 +77,17 @@ export function computeMilestones(reviews: Review[], plays: Play[]): Milestone[]
   out.push(...entityMilestones('track', tracks))
 
   // total plays
-  const playDates = plays.map((p) => p.playedAt).sort()
+  const playDates = counted.map((p) => p.playedAt).sort()
   for (const t of TOTAL_PLAY_THRESHOLDS) {
     out.push({
       id: `total:${t}`,
       subject: 'Gesamt',
       verb: 'Plays',
       target: t,
-      current: plays.length,
-      reachedAt: plays.length >= t ? playDates[t - 1] : null,
+      current: counted.length,
+      reachedAt: counted.length >= t ? playDates[t - 1] : null,
     })
-    if (plays.length < t) break
+    if (counted.length < t) break
   }
 
   // archive size (createdAt = wann die Review ins Archiv kam; importierte
