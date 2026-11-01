@@ -102,8 +102,8 @@ async function run(): Promise<void> {
           setPendingFullSync(false)
         } else {
           // pull first so out-of-app changes (other device, corrections)
-          // arrive on every app start; locally dirty rows win every
-          // conflict. The rows just applied carry the server timestamp and
+          // arrive on every app start; the newer content wins every
+          // conflict (see reviewReconcile). The rows just applied carry the server timestamp and
           // would look dirty to the push — exclude them, then cover their
           // timestamps in the watermark AFTER the push ran (covering them
           // before could mask a genuinely dirty row under clock drift).

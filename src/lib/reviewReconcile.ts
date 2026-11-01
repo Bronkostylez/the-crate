@@ -7,10 +7,16 @@ import type { Review } from '../types'
  * Rules:
  *  - remote row unknown locally          -> apply locally (other device /
  *                                           out-of-app change / first login)
- *  - local row dirty (changed AFTER the  -> local always wins, gets pushed
- *    last successful sync, strictly)
- *  - remote strictly newer, local clean  -> apply locally (this is how
- *                                           out-of-app corrections arrive)
+ *  - remote strictly newer than the      -> apply locally, even when the
+ *    local row's updated_at                local row is dirty: updated_at is
+ *                                           the content's own timestamp, so
+ *                                           the newer content wins. This is
+ *                                           what stops a stale device (old
+ *                                           rows, watermark lost) from
+ *                                           clobbering newer cloud data.
+ *  - local row dirty (changed AFTER the  -> local content is the newer one,
+ *    last successful sync) and at least     it gets pushed
+ *    as new as the remote row
  *  - remote same age or older            -> keep local, push nothing
  *
  * Local rows the remote does not know are pushed only when dirty — a full
@@ -53,8 +59,11 @@ export function planReviewReconcile(
     // and push their stale content over newer remote corrections
     const localDirty = localTs > watermark
     const remoteNewer = remoteTs - localTs > toleranceMs
-    if (localDirty) pushIds.push(l.id) // local wins the conflict
-    else if (remoteNewer) applyIds.push(row.id)
+    // the newer CONTENT wins: a dirty local row still loses to a newer
+    // remote row — otherwise a device with a lost watermark (every old row
+    // looks dirty) would push stale state over newer cloud data
+    if (remoteNewer) applyIds.push(row.id)
+    else if (localDirty) pushIds.push(l.id)
     // same age or remote older: nothing to do
   }
 

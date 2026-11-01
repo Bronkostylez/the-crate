@@ -1,5 +1,6 @@
 import type { Play, Review } from '../types'
 import { countedPlays, playEffectiveMs, playIsEstimated } from '../db/plays'
+import { albumKey, artistKey } from './artists'
 
 /**
  * THE DNA — the musical identity engine.
@@ -58,14 +59,6 @@ export interface DnaResult {
   tasteShift: { recent: Array<{ artist: string; minutes: number }>; before: Array<{ artist: string; minutes: number }>; hasEnough: boolean } | null
   jazzShare: { inTopRated: number; overall: number; topRatedN: number } | null
   topRatedCoast: { topRated: Record<string, number>; overall: Record<string, number>; topRatedN: number } | null
-}
-
-function norm(s: string): string {
-  return s.toLowerCase().trim()
-}
-
-function primaryArtist(artistName: string): string {
-  return artistName.split(/,\s*|\s+&\s+/)[0].trim()
 }
 
 /** Scene buckets derived only from the user's own genre tags. */
@@ -143,7 +136,7 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
 
   // ── listening matched to archive albums (for genre/coast listening) ──
   const reviewByAlbum = new Map<string, Review>()
-  for (const r of reviews) reviewByAlbum.set(`${norm(r.artist)}::${norm(r.albumTitle)}`, r)
+  for (const r of reviews) reviewByAlbum.set(`${artistKey(r.artist)}::${albumKey(r.albumTitle)}`, r)
   const genreMinutes = new Map<string, number>()
   const sceneMinutes = new Map<string, number>()
   let matchedPlayMs = 0
@@ -154,7 +147,7 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
     if (playIsEstimated(p)) estimatedPlayMs += ms
     totalPlayMs += ms
     if (!p.albumName) continue
-    const review = reviewByAlbum.get(`${norm(p.artistName)}::${norm(p.albumName)}`)
+    const review = reviewByAlbum.get(`${artistKey(p.artistName)}::${albumKey(p.albumName)}`)
     if (!review) continue
     matchedPlayMs += ms
     for (const g of review.genres) genreMinutes.set(g, (genreMinutes.get(g) ?? 0) + ms)
@@ -168,22 +161,40 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
   const coastSplit = [...sceneMinutes.entries()].sort((a, b) => b[1] - a[1]).map(([scene, ms]) => ({ scene, minutes: ms / 60000 }))
 
   // ── contradictions: listening vs ratings per artist ──
+  // both sides keyed by artistKey: the review archive spells artists
+  // differently than Spotify exports ("N.W.A" vs "N.W.A.", "Wu‐Tang" vs
+  // "Wu-Tang", "Snoop Doggy Dogg" vs "Snoop Dogg") — raw string joins
+  // silently produce "0 Min im Verlauf" for heavily played artists.
   const artistMinutes = new Map<string, number>()
+  // display name per key: the most-heard raw spelling from the plays…
+  const playNames = new Map<string, Map<string, number>>()
   for (const p of plays) {
-    const a = primaryArtist(p.artistName)
-    artistMinutes.set(a, (artistMinutes.get(a) ?? 0) + playEffectiveMs(p))
+    const k = artistKey(p.artistName)
+    const ms = playEffectiveMs(p)
+    artistMinutes.set(k, (artistMinutes.get(k) ?? 0) + ms)
+    const variants = playNames.get(k) ?? new Map<string, number>()
+    variants.set(p.artistName, (variants.get(p.artistName) ?? 0) + ms)
+    playNames.set(k, variants)
   }
+  // …overridden by the archive spelling once the artist has a review
   const artistRatings = new Map<string, number[]>()
+  const reviewNames = new Map<string, string>()
   for (const r of reviews) {
-    const cur = artistRatings.get(r.artist) ?? []
+    const k = artistKey(r.artist)
+    const cur = artistRatings.get(k) ?? []
     if (r.rating !== null) cur.push(r.rating)
-    artistRatings.set(r.artist, cur)
+    artistRatings.set(k, cur)
+    if (!reviewNames.has(k)) reviewNames.set(k, r.artist)
   }
-  const behavior: ArtistBehavior[] = [...new Set([...artistMinutes.keys(), ...artistRatings.keys()])].map((artist) => ({
-    artist,
-    minutes: (artistMinutes.get(artist) ?? 0) / 60000,
-    avgRating: avg(artistRatings.get(artist) ?? []),
-    reviewCount: (artistRatings.get(artist) ?? []).length,
+  const displayName = (k: string): string =>
+    reviewNames.get(k)
+    ?? [...(playNames.get(k)?.entries() ?? [])].sort((a, b) => b[1] - a[1])[0]?.[0]
+    ?? k
+  const behavior: ArtistBehavior[] = [...new Set([...artistMinutes.keys(), ...artistRatings.keys()])].map((k) => ({
+    artist: displayName(k),
+    minutes: (artistMinutes.get(k) ?? 0) / 60000,
+    avgRating: avg(artistRatings.get(k) ?? []),
+    reviewCount: (artistRatings.get(k) ?? []).length,
   }))
   const heardNotRated = behavior
     .filter((b) => b.minutes > 0 && (b.avgRating === null || b.avgRating < 7))
@@ -201,7 +212,7 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
     const cur = byMonth.get(m) ?? { ms: 0, artists: new Map() }
     const ms = playEffectiveMs(p)
     cur.ms += ms
-    const a = primaryArtist(p.artistName)
+    const a = artistKey(p.artistName)
     cur.artists.set(a, (cur.artists.get(a) ?? 0) + ms)
     byMonth.set(m, cur)
   }
@@ -209,7 +220,7 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([month, v]) => {
       const top = [...v.artists.entries()].sort((a, b) => b[1] - a[1])[0]
-      return { month, minutes: Math.round(v.ms / 60000), topArtist: top?.[0] ?? null, topArtistMinutes: top ? Math.round(top[1] / 60000) : 0 }
+      return { month, minutes: Math.round(v.ms / 60000), topArtist: top ? displayName(top[0]) : null, topArtistMinutes: top ? Math.round(top[1] / 60000) : 0 }
     })
 
   // ── taste shift: second half vs first half of the imported range ──
@@ -221,10 +232,10 @@ export function computeDna(reviews: Review[], plays: Play[]): DnaResult {
       const m = new Map<string, number>()
       for (const p of sorted) {
         if (p.playedAt < lo || p.playedAt >= hi) continue
-        const a = primaryArtist(p.artistName)
+        const a = artistKey(p.artistName)
         m.set(a, (m.get(a) ?? 0) + playEffectiveMs(p))
       }
-      return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([artist, ms]) => ({ artist, minutes: Math.round(ms / 60000) }))
+      return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k, ms]) => ({ artist: displayName(k), minutes: Math.round(ms / 60000) }))
     }
     tasteShift = {
       before: half(sorted[0].playedAt, mid),

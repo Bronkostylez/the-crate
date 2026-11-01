@@ -219,9 +219,10 @@ async function fetchRemoteReviews(ids: string[]): Promise<{
 // ── the sync ─────────────────────────────────────────────────────────────
 
 /**
- * Light pull for the auto-sync: apply remote rows that are newer than clean
- * local state (out-of-app changes, other devices) without pushing anything.
- * Locally dirty rows always win and are left to pushDirtyReviews.
+ * Light pull for the auto-sync: apply remote rows whose content is newer
+ * than the local row (out-of-app changes, other devices) without pushing
+ * anything. Locally dirty rows only win when their content is the newer
+ * one — a stale device can no longer clobber the cloud (reviewReconcile).
  * Returns the applied server timestamps so the caller can cover them in the
  * watermark AFTER the dirty push has run.
  */
@@ -304,9 +305,9 @@ export async function syncCloud(): Promise<CloudSyncResult> {
     if (!error) removePendingDelete(id)
   }
   // reviews reconcile: pull newer remote rows FIRST so out-of-app changes
-  // (other device, support edits) arrive here; locally dirty rows win every
-  // conflict and are the only ones pushed — clean local state never
-  // overwrites newer remote state.
+  // (other device, support edits) arrive here; the newer content wins every
+  // conflict and only locally newer dirty rows are pushed — stale local
+  // state never overwrites newer remote state.
   const localReviews = await db.reviews.toArray()
   const { data: remoteMeta, error: metaError } = await supabase.from('reviews').select('id, updated_at')
   if (metaError) throw new Error(`Review-Download fehlgeschlagen: ${metaError.message}`)

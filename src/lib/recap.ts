@@ -1,5 +1,6 @@
 import type { Play, Review } from '../types'
 import { isSkipPlay, playEffectiveMs, playIsEstimated } from '../db/plays'
+import { albumKey, artistKey } from './artists'
 
 /**
  * THE RECAP — monthly and yearly listening recaps.
@@ -115,14 +116,15 @@ export function computeRecap(plays: Play[], reviews: Review[], year: number, mon
   }
   const prevTopArtist = [...prevArtistMs.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
 
-  // genres via album match against the review archive
+  // genres via album match against the review archive — keyed like The DNA
+  // (review spellings differ from export spellings, see lib/artists.ts)
   const reviewByAlbum = new Map<string, Review>()
-  for (const r of reviews) reviewByAlbum.set(`${r.artist.toLowerCase()}::${r.albumTitle.toLowerCase()}`, r)
+  for (const r of reviews) reviewByAlbum.set(`${artistKey(r.artist)}::${albumKey(r.albumTitle)}`, r)
   const genreMs = new Map<string, number>()
   const decadeMs = new Map<string, number>()
   for (const p of cur) {
     if (!p.albumName) continue
-    const review = reviewByAlbum.get(`${p.artistName.toLowerCase()}::${p.albumName.toLowerCase()}`)
+    const review = reviewByAlbum.get(`${artistKey(p.artistName)}::${albumKey(p.albumName)}`)
     if (!review) continue
     const ms = playEffectiveMs(p)
     for (const g of review.genres) genreMs.set(g, (genreMs.get(g) ?? 0) + ms)
