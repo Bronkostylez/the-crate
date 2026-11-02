@@ -15,7 +15,14 @@ import { importPlays } from '../db/plays'
 import type { ParsedPlay, Play, Review } from '../types'
 import { getConfigValue } from './config'
 import { planReviewReconcile, nextWatermark } from './reviewReconcile'
-import { getReviewWatermark, readPendingDeletes, removePendingDelete, setReviewWatermark } from './syncQueue'
+import {
+  getPlaysCreatedWatermark,
+  getReviewWatermark,
+  readPendingDeletes,
+  removePendingDelete,
+  setPlaysCreatedWatermark,
+  setReviewWatermark,
+} from './syncQueue'
 import { getSupabase } from './supabase'
 
 /** export and API timestamp the same play slightly differently — window dedupe */
@@ -75,6 +82,7 @@ interface CloudPlayRow {
   ms_played: number
   duration_ms: number | null
   source: string
+  created_at?: string
 }
 
 function toCloudPlay(userId: string, p: Play): CloudPlayRow & { user_id: string } {
@@ -105,17 +113,6 @@ export function fromCloudPlay(r: CloudPlayRow): ParsedPlay & { source: Play['sou
 const keyOf = (p: { playedAt: string; trackName: string; artistName: string }) =>
   `${p.playedAt}::${p.trackName.toLowerCase()}::${p.artistName.toLowerCase()}`
 
-function samePlayWindow(
-  a: { playedAt: string; trackName: string; artistName: string },
-  b: { playedAt: string; trackName: string; artistName: string },
-): boolean {
-  return (
-    a.trackName.toLowerCase() === b.trackName.toLowerCase() &&
-    a.artistName.toLowerCase() === b.artistName.toLowerCase() &&
-    Math.abs(new Date(a.playedAt).getTime() - new Date(b.playedAt).getTime()) < WINDOW_MS
-  )
-}
-
 /**
  * Remote rows minus everything already stored locally (exact key or 3-minute
  * window). One exception: a remote EXPORT row that only matches a local
@@ -125,13 +122,104 @@ function samePlayWindow(
  */
 export function freshRemotePlays(remote: CloudPlayRow[], local: Play[]): Array<ParsedPlay & { source: Play['source'] }> {
   const keys = new Set(local.map(keyOf))
-  return remote.map(fromCloudPlay).filter((p) => {
-    if (keys.has(keyOf(p))) return false
-    const isExport = p.source === 'spotify_extended' || p.source === 'spotify_simple'
-    return !local.some(
-      (e) => samePlayWindow(e, p) && !(isExport && e.source === 'spotify_api'),
-    )
+  const parsed = remote.map(fromCloudPlay)
+  const isExport = (p: { source: Play['source'] }) => p.source === 'spotify_extended' || p.source === 'spotify_simple'
+  // normalized once — the 3-minute window scan below runs per remote row,
+  // and lowercasing inside it would dominate a first pull on a phone
+  const norm = (p: { trackName: string; artistName: string; playedAt: string; source: Play['source'] }) => ({
+    t: p.trackName.toLowerCase(),
+    a: p.artistName.toLowerCase(),
+    ts: Date.parse(p.playedAt),
+    source: p.source,
   })
+  const windowHit = (e: ReturnType<typeof norm>, p: ReturnType<typeof norm>) =>
+    e.t === p.t && e.a === p.a && Math.abs(e.ts - p.ts) < WINDOW_MS
+  const localNorm = local.map(norm)
+  // An export row beats a live-sync estimate wherever both describe the same
+  // play — against local rows (existing swap at the import seam) AND inside
+  // the pulled batch itself: the cloud keeps the hourly tracker's
+  // spotify_api rows next to the later-imported export rows, and pulling
+  // both would double-count the overlap days on every other device.
+  const exportNorm = [...localNorm.filter(isExport), ...parsed.filter(isExport).map(norm)]
+  return parsed.filter((p) => {
+    if (keys.has(keyOf(p))) return false
+    const pn = norm(p)
+    if (!isExport(p) && exportNorm.some((e) => windowHit(e, pn))) return false
+    return !localNorm.some((e) => windowHit(e, pn) && !(isExport(p) && e.source === 'spotify_api'))
+  })
+}
+
+/** PostgREST caps one response (default 1000 rows) — every play pull pages. */
+const PLAY_PAGE = 1000
+
+/**
+ * All cloud plays, paged by created_at (insert-only table, so the order is
+ * stable while reading). An unpaginated select silently stalls at the
+ * oldest page forever: every later sync re-fetches the same first page,
+ * finds only duplicates and never advances.
+ */
+async function fetchAllCloudPlays(supabase: NonNullable<ReturnType<typeof getSupabase>>, sinceCreatedAt?: string): Promise<CloudPlayRow[]> {
+  const rows: CloudPlayRow[] = []
+  for (let from = 0; ; from += PLAY_PAGE) {
+    let q = supabase
+      .from('listening_history')
+      .select('track_name, artist_name, album_name, played_at, ms_played, duration_ms, source, created_at')
+      .order('created_at', { ascending: true })
+      .range(from, from + PLAY_PAGE - 1)
+    if (sinceCreatedAt) q = q.gte('created_at', sinceCreatedAt)
+    const { data, error } = await q
+    if (error) throw new Error(`Play-Download fehlgeschlagen: ${error.message}`)
+    rows.push(...((data ?? []) as CloudPlayRow[]))
+    if (!data || data.length < PLAY_PAGE) break
+  }
+  return rows
+}
+
+async function importFreshPlays(remote: CloudPlayRow[], local: Play[]): Promise<number> {
+  const fresh = freshRemotePlays(remote, local)
+  const bySource = new Map<Play['source'], ParsedPlay[]>()
+  for (const p of fresh) {
+    const { source, ...parsedPlay } = p
+    bySource.set(source, [...(bySource.get(source) ?? []), parsedPlay])
+  }
+  for (const [source, plays] of bySource) await importPlays(plays, source)
+  return fresh.length
+}
+
+function maxCreatedAt(rows: CloudPlayRow[], floor: string | null): string | null {
+  let best = floor
+  let bestMs = floor ? Date.parse(floor) : 0
+  for (const r of rows) {
+    if (!r.created_at) continue
+    const ms = Date.parse(r.created_at)
+    if (ms > bestMs) {
+      bestMs = ms
+      best = r.created_at
+    }
+  }
+  return best
+}
+
+/** Small lookbehind so a slow-committing insert is never skipped; dedupe absorbs the overlap. */
+const PLAYS_PULL_SLACK_MS = 60_000
+
+/**
+ * Pull-only plays sync for the auto-sync: fetch cloud rows created since the
+ * last pull and import what is new. Never pushes — the hourly tracker and
+ * the manual full sync own the upload direction. The watermark advances
+ * only after a complete pass, so a failed run simply retries next time.
+ */
+export async function pullNewCloudPlays(): Promise<number> {
+  const supabase = getSupabase()
+  const user = await cloudSession()
+  if (!supabase || !user) return 0
+  const watermark = getPlaysCreatedWatermark()
+  const since = watermark ? new Date(Date.parse(watermark) - PLAYS_PULL_SLACK_MS).toISOString() : undefined
+  const remote = await fetchAllCloudPlays(supabase, since)
+  const imported = await importFreshPlays(remote, await db.plays.toArray())
+  const newWatermark = maxCreatedAt(remote, watermark)
+  if (newWatermark && newWatermark !== watermark) setPlaysCreatedWatermark(newWatermark)
+  return imported
 }
 
 // ── reviews ──────────────────────────────────────────────────────────────
@@ -284,18 +372,10 @@ export async function syncCloud(): Promise<CloudSyncResult> {
   }
 
   // …then pull whatever the hourly tracker (or another device) added
-  const { data: remotePlays, error: pullError } = await supabase
-    .from('listening_history')
-    .select('track_name, artist_name, album_name, played_at, ms_played, duration_ms, source')
-    .order('played_at', { ascending: true })
-  if (pullError) throw new Error(`Play-Download fehlgeschlagen: ${pullError.message}`)
-  const fresh = freshRemotePlays((remotePlays ?? []) as CloudPlayRow[], localPlays)
-  const bySource = new Map<Play['source'], ParsedPlay[]>()
-  for (const p of fresh) {
-    const { source, ...parsed } = p
-    bySource.set(source, [...(bySource.get(source) ?? []), parsed])
-  }
-  for (const [source, plays] of bySource) await importPlays(plays, source)
+  const remotePlays = await fetchAllCloudPlays(supabase)
+  const freshCount = await importFreshPlays(remotePlays, localPlays)
+  const playsWatermark = maxCreatedAt(remotePlays, getPlaysCreatedWatermark())
+  if (playsWatermark) setPlaysCreatedWatermark(playsWatermark)
 
   // reviews: replay queued deletions first (auto-sync keeps this queue
   // for offline deletes), then push local state, then pull newer rows
@@ -346,7 +426,7 @@ export async function syncCloud(): Promise<CloudSyncResult> {
 
   return {
     playsPushed,
-    playsPulled: fresh.length,
+    playsPulled: freshCount,
     reviewsPushed,
     reviewsPulled,
     syncedAt: new Date().toISOString(),

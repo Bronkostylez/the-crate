@@ -14,7 +14,7 @@
  * successful push, so a failed run simply retries on the next trigger.
  */
 import { db } from '../db/local'
-import { cloudSession, pullNewerReviews, syncCloud, toCloudReview } from './cloud'
+import { cloudSession, pullNewCloudPlays, pullNewerReviews, syncCloud, toCloudReview } from './cloud'
 import { pullCreditsFromCloud } from './credits'
 import { getSupabase } from './supabase'
 import {
@@ -109,6 +109,15 @@ async function run(): Promise<void> {
           // timestamps in the watermark AFTER the push ran (covering them
           // before could mask a genuinely dirty row under clock drift).
           await pullCreditsFromCloud() // derived reference data, merge-only
+          try {
+            // plays are pull-only here (created_at delta): this is how a
+            // second device receives an import or the tracker's catches
+            // without a manual full sync. A failure must not poison the
+            // review result — the watermark stayed put, so the next run retries.
+            await pullNewCloudPlays()
+          } catch (e) {
+            console.warn('Play-Pull fehlgeschlagen (Reviews sind synchron):', e)
+          }
           const pulled = await pullNewerReviews()
           await pushDirtyReviews(new Set(pulled.appliedIds))
           const maxApplied = pulled.appliedTs.reduce((m, ts) => Math.max(m, new Date(ts).getTime()), 0)

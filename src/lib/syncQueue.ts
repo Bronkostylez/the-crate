@@ -14,6 +14,7 @@ const WATERMARK_KEY = 'crate.cloud.reviewWatermark'
 const PENDING_DELETES_KEY = 'crate.cloud.pendingReviewDeletes'
 const PENDING_FULL_KEY = 'crate.cloud.pendingFullSync'
 const LAST_AUTO_KEY = 'crate.cloud.lastAutoSyncAt'
+const PLAYS_CREATED_KEY = 'crate.cloud.playsCreatedWatermark'
 
 function store(): Storage | null {
   try {
@@ -61,6 +62,15 @@ export function getPendingFullSync(): boolean {
 export function setPendingFullSync(pending: boolean): void {
   if (pending) store()?.setItem(PENDING_FULL_KEY, '1')
   else store()?.removeItem(PENDING_FULL_KEY)
+}
+
+/** Server created_at of the newest cloud play this device has pulled. */
+export function getPlaysCreatedWatermark(): string | null {
+  return store()?.getItem(PLAYS_CREATED_KEY) ?? null
+}
+
+export function setPlaysCreatedWatermark(iso: string): void {
+  store()?.setItem(PLAYS_CREATED_KEY, iso)
 }
 
 export function getLastAutoSyncAt(): string | null {
