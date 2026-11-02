@@ -3,9 +3,10 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ArrowRight, Dna, Lock } from 'lucide-react'
+import { ArrowRight, CloudDownload, Dna, Loader2, Lock } from 'lucide-react'
 import { db } from '../db/local'
 import { computeDna } from '../lib/dna'
+import { computeProducerDna, syncCreditsForArchive, type CreditsProgress } from '../lib/credits'
 import { EmptyState } from '../components/EmptyState'
 import { formatRating } from '../lib/utils'
 import { formatDuration } from '../db/plays'
@@ -23,10 +24,27 @@ export function DnaPage() {
   const [desktopDefault] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768)
   const reviews = useLiveQuery(() => db.reviews.toArray(), [])
   const plays = useLiveQuery(() => db.plays.toArray(), [])
+  const credits = useLiveQuery(() => db.credits.toArray(), [])
+  const [creditsBusy, setCreditsBusy] = useState<CreditsProgress | null>(null)
+  const [creditsError, setCreditsError] = useState('')
 
   const dna = useMemo(() => (reviews && plays ? computeDna(reviews, plays) : null), [reviews, plays])
+  const producerDna = useMemo(() => (reviews && credits ? computeProducerDna(reviews, credits) : null), [reviews, credits])
 
-  if (!reviews || !plays || !dna) return null
+  if (!reviews || !plays || !dna || !credits) return null
+
+  async function loadCredits() {
+    if (!reviews) return
+    setCreditsError('')
+    setCreditsBusy({ album: '', done: 0, total: 1 })
+    try {
+      await syncCreditsForArchive(reviews, setCreditsBusy)
+    } catch (e) {
+      setCreditsError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setCreditsBusy(null)
+    }
+  }
 
   if (reviews.length === 0 && plays.length === 0) {
     return (
@@ -65,6 +83,20 @@ export function DnaPage() {
         </p>
       </header>
 
+      {credits.length === 0 && reviews.length > 0 && (
+        <div className="crate-card flex flex-wrap items-center gap-3 px-4 py-3 text-sm text-cream-500">
+          <p className="min-w-52 flex-1">
+            Neu: Produzenten-Credits aus MusicBrainz (optional Genius) öffnen die gesperrten Fragen unten — geholt wird pro Album einmal, ehrlich ohne Schätzungen.
+          </p>
+          <button type="button" className="crate-btn-primary" disabled={creditsBusy !== null} onClick={() => void loadCredits()}>
+            {creditsBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudDownload className="h-4 w-4" />}
+            {creditsBusy ? `Lade Credits ${creditsBusy.done}/${creditsBusy.total}` : 'Credits laden'}
+          </button>
+          {creditsBusy && creditsBusy.album && <p className="w-full text-xs text-cream-600">{creditsBusy.album}</p>}
+          {creditsError && <p className="w-full text-xs text-red-400">{creditsError}</p>}
+        </div>
+      )}
+      {credits.length === 0 && reviews.length > 0 && false}
       {dna.genres.length === 0 && dna.coverage.plays > 0 && (
         <div className="crate-card flex flex-wrap items-center gap-3 px-4 py-3 text-sm text-cream-500">
           <p className="min-w-52 flex-1">
@@ -262,6 +294,28 @@ export function DnaPage() {
               caveat="Kein Urteil über Qualität — vielleicht fehlt einfach das Review."
             />
           )}
+          {producerDna && producerDna.coverage.tracksWithProducer > 0 && (
+            <AnswerCard
+              question="Bevorzuge ich DJ-Premier-Produktionen?"
+              answer={[
+                `DJ Premier steht hinter ${producerDna.premier.tracks} der ${producerDna.coverage.tracksWithProducer} Tracks mit Produzenten-Credit in deinem Archiv (${Math.round(producerDna.premier.shareOfCredited * 100)}%) — u. a. auf ${producerDna.premier.albums.slice(0, 4).join(', ')}${producerDna.premier.albums.length > 4 ? ` und ${producerDna.premier.albums.length - 4} weiteren` : ''}.`,
+                producerDna.premier.nWith > 0 && producerDna.premier.nWithout > 0 && producerDna.premier.avgRatingWith !== null && producerDna.premier.avgRatingWithout !== null
+                  ? `Alben mit Premier-Produktion bewertest du im Schnitt ${formatRating(producerDna.premier.avgRatingWith)} (n = ${producerDna.premier.nWith}), Alben ohne ${formatRating(producerDna.premier.avgRatingWithout)} (n = ${producerDna.premier.nWithout}).`
+                  : '',
+                producerDna.premier.bestPickTotal > 0
+                  ? `${producerDna.premier.bestPickHits} deiner ${producerDna.premier.bestPickTotal} „Am Besten“-Picks sind Premier-Beats.`
+                  : '',
+              ].filter(Boolean).join(' ')}
+              caveat={`Credits aus MusicBrainz${credits.some((c) => c.source === 'genius') ? ' + Genius' : ''}, ${producerDna.coverage.albumsWithCredits} von ${producerDna.coverage.albumsTotal} Alben abgedeckt. Korrelation, kein Beweis — aber ein Muster.`}
+            />
+          )}
+          {producerDna && producerDna.topFavorites.length > 0 && (
+            <AnswerCard
+              question="Welche Produzenten dominieren deine Favoriten?"
+              answer={producerDna.topFavorites.map((p) => `${p.name} (${p.tracks} Tracks, ${Math.round(p.share * 100)}%)`).join(' · ')}
+              caveat={`Gezählt über die ${producerDna.favoritesTrackN} Tracks mit Produzenten-Credit auf deinen ${producerDna.favoritesAlbumN} Alben mit 8+. Quelle: MusicBrainz${credits.some((c) => c.source === 'genius') ? ' + Genius' : ''}.`}
+            />
+          )}
           {dna.tasteShift && dna.tasteShift.hasEnough && (
             <AnswerCard
               question="Hat sich dein Geschmack verändert?"
@@ -274,18 +328,21 @@ export function DnaPage() {
           defaultOpen={desktopDefault}
           title={
             <span className="flex items-center gap-2 text-sm text-cream-500">
-              <Lock className="h-3.5 w-3.5" /> 3 gesperrte Fragen — und warum
+              <Lock className="h-3.5 w-3.5" /> {producerDna && producerDna.coverage.tracksWithProducer > 0 ? 1 : 3} gesperrte {producerDna && producerDna.coverage.tracksWithProducer > 0 ? 'Frage' : 'Fragen'} — und warum
             </span>
           }
         >
           <div className="grid grid-cols-1 gap-3 pb-1 md:grid-cols-2">
-            <LockedCard question="Bevorzuge ich DJ-Premier-Produktionen?" reason="Braucht Credits-Daten — die Spotify-API liefert sie leider nicht. Eine Credits-Quelle (z. B. Genius) könnte das später öffnen." />
-            <LockedCard question="Welche Produzenten dominieren meine Favoriten?" reason="Braucht Credits-Daten — die Spotify-API liefert sie leider nicht. Eine Credits-Quelle (z. B. Genius) könnte das später öffnen." />
+            {(!producerDna || producerDna.coverage.tracksWithProducer === 0) && (
+              <>
+                <LockedCard question="Bevorzuge ich DJ-Premier-Produktionen?" reason="Liegt bereit: Lade oben die Produzenten-Credits aus MusicBrainz (optional Genius-Token in den Einstellungen), dann rechnet The DNA damit." />
+                <LockedCard question="Welche Produzenten dominieren meine Favoriten?" reason="Liegt bereit: Lade oben die Produzenten-Credits aus MusicBrainz (optional Genius-Token in den Einstellungen), dann rechnet The DNA damit." />
+              </>
+            )}
             <LockedCard question="Welche Rap-Stile und Album-Konzepte bewerte ich höher?" reason="Braucht deine eigenen Tags — pflege Stile und Konzepte als Tags in deinen Reviews, dann rechnet The DNA damit." />
           </div>
           <p className="text-xs text-cream-600">
-            Gesperrt bleibt, was die Daten nicht hergeben: Producer-Credits liefert auch die Spotify-API nicht,
-            Stil-/Konzept-Fragen brauchen deine Tags. Geraten wird hier nicht.
+            Gesperrt bleibt, was die Daten nicht hergeben: Stil-/Konzept-Fragen brauchen deine Tags. Geraten wird hier nicht.
           </p>
         </Disclosure>
       </section>

@@ -15,6 +15,7 @@
  */
 import { db } from '../db/local'
 import { cloudSession, pullNewerReviews, syncCloud, toCloudReview } from './cloud'
+import { pullCreditsFromCloud } from './credits'
 import { getSupabase } from './supabase'
 import {
   addPendingDelete,
@@ -107,6 +108,7 @@ async function run(): Promise<void> {
           // would look dirty to the push — exclude them, then cover their
           // timestamps in the watermark AFTER the push ran (covering them
           // before could mask a genuinely dirty row under clock drift).
+          await pullCreditsFromCloud() // derived reference data, merge-only
           const pulled = await pullNewerReviews()
           await pushDirtyReviews(new Set(pulled.appliedIds))
           const maxApplied = pulled.appliedTs.reduce((m, ts) => Math.max(m, new Date(ts).getTime()), 0)

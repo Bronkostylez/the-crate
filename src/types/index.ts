@@ -155,3 +155,18 @@ export interface SnapshotDiff {
   added: PlaylistTrack[]
   removed: PlaylistTrack[]
 }
+
+/** Producer/writer credits for one track — fetched from an external credits
+ * source (MusicBrainz, Genius), never guessed. Missing credits stay missing. */
+export interface TrackCredit {
+  /** stable key: artistKey::albumKey::normalized track title */
+  id: string
+  artist: string
+  albumTitle: string
+  trackTitle: string
+  trackNumber: number | null
+  producers: string[]
+  writers: string[]
+  source: 'musicbrainz' | 'genius'
+  fetchedAt: string
+}

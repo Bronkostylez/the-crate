@@ -14,6 +14,7 @@ const LS_KEYS = {
   supabaseUrl: 'crate.config.supabaseUrl',
   supabaseAnonKey: 'crate.config.supabaseAnonKey',
   spotifyClientId: 'crate.config.spotifyClientId',
+  geniusAccessToken: 'crate.config.geniusAccessToken',
 } as const
 
 export interface ConfigField {
@@ -52,6 +53,12 @@ export function getConfig(): ConfigField[] {
       label: 'Spotify Client ID',
       envName: 'VITE_SPOTIFY_CLIENT_ID',
       hint: 'developer.spotify.com → deine App → Client ID. Der Login läuft über PKCE, ein Client-Secret wird nie gebraucht.',
+    },
+    {
+      key: 'geniusAccessToken',
+      label: 'Genius Access Token (optional)',
+      envName: 'VITE_GENIUS_ACCESS_TOKEN',
+      hint: 'genius.com/api-clients → neuer API Client → „Client Access Token“. Nur Lesezugriff auf öffentliche Song-Daten — ergänzt Produzenten-Credits, wo MusicBrainz Lücken hat.',
     },
   ]
   return fields.map((f) => ({ ...f, ...read(f.key, f.envName) }))
